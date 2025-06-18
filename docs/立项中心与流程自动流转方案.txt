@@ -1,0 +1,62 @@
+【立项中心与流程自动流转方案】
+
+1. 立项中心项目清单与流程节点的关系
+- 每个立项项目有一个"当前节点"字段（如：node），标识该项目当前所处的流程阶段（如"申请材料"、"论证会"、"立项审批"、"询比文件审核"）。
+- 清单表格中"立项节点"字段实时反映项目所处阶段。
+
+2. 流程页面的"提交成果"与节点推进
+- 每个流程页面（如申请材料管理）有"提交"按钮，用户完成本节点所有操作后点击提交。
+- 提交后，自动将该项目的"当前节点"推进到下一个节点，并在立项中心清单中实时反映。
+
+3. 自动流转逻辑
+3.1 节点推进映射
+- 维护一个节点流转顺序数组：
+  const nodeOrder = ['materials', 'review', 'decision', 'inquiry']
+
+3.2 提交成果时的操作
+- 在流程页面提交时，调用接口或直接修改全局/共享的立项项目数据，将该项目的 node 字段推进到下一个节点。
+- 可选：记录每个节点的完成时间、操作人等。
+
+3.3 立项中心清单的实时同步
+- 立项中心的项目清单数据应为全局共享（如 Vuex/pinia/store 或父组件传递），每次节点推进后自动刷新。
+- 清单中"立项节点"字段自动更新，项目会出现在下一个节点的筛选结果中。
+
+4. 交互体验
+- 用户在流程页面完成操作并提交后，页面可弹出"已进入下一流程节点：xxx"，并可一键跳转到下一个节点页面。
+- 立项中心清单自动反映最新状态，用户一目了然每个项目的进展。
+
+5. 伪代码示例
+// 立项中心项目清单数据结构
+const approvalList = ref([
+  { id: 'A001', title: '项目A', node: 'materials', ... }
+])
+
+// 节点推进函数（流程页面用）
+const nodeOrder = ['materials', 'review', 'decision', 'inquiry']
+
+function submitAndNext(projectId) {
+  const project = approvalList.value.find(p => p.id === projectId)
+  if (!project) return
+  const idx = nodeOrder.indexOf(project.node)
+  if (idx < nodeOrder.length - 1) {
+    project.node = nodeOrder[idx + 1]
+    // 可选：project.nodeHistory.push({ node: project.node, time: Date.now() })
+    message.success(`已进入下一流程节点：${getNodeName(project.node)}`)
+    // 跳转到下一个流程页面
+    router.push({ path: nodeRouteMap[project.node], query: { projectId } })
+  } else {
+    message.success('所有流程已完成！')
+  }
+}
+
+// 清单页面自动刷新
+// approvalList 为响应式数据，节点变更后自动刷新表格。
+
+6. 业务流程图
+[申请材料] → 提交 → [论证会] → 提交 → [立项审批] → 提交 → [询比文件审核] → 提交 → [流程结束]
+每一步提交，项目自动进入下一个节点，清单中"立项节点"字段随之变化。
+
+7. 操作体验总结
+- 用户在立项中心看到所有项目及其当前节点。
+- 点击"进入流程"进入对应页面，完成并提交后，项目自动流转到下一个节点，清单自动更新。
+- 全程无需手动维护节点状态，流程自然流转。 

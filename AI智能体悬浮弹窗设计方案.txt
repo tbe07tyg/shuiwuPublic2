@@ -1,0 +1,92 @@
+# 智能体右侧悬浮弹窗设计方案
+
+## 一、页面草图（低保真）
+
+```
+┌─────────────────────────────┐
+│        🤖 智能体助手         │
+├─────────────────────────────┤
+│ 🔔 今日提醒                  │
+│ • 3个项目节点今日到期        │
+│ • 2份合同即将到期            │
+│ • 1个项目预算超支            │
+├─────────────────────────────┤
+│ ⚡ 智能建议                  │
+│ • 建议优先推进"智能水表"项目 │
+│ • 发现3个项目进度滞后        │
+├─────────────────────────────┤
+│ 📝 快捷操作                  │
+│ [一键分配任务] [批量通知]     │
+│ [生成报表] [批量归档]         │
+├─────────────────────────────┤
+│ 💬 智能对话区                │
+│ Q: 如何导入供应商库？         │
+│ A: 请在"日常维护-供应商库维护"│
+│    中点击导入…               │
+│                              │
+│ [输入框] [发送]               │
+└─────────────────────────────┘
+```
+
+---
+
+## 二、UI设计要点
+- 入口：页面右侧中下方悬浮"🤖"按钮，点击后弹出智能体侧边弹窗。
+- 弹窗宽度约400px，高度自适应，支持拖动/收起。
+- 顶部：智能体头像+标题（如"智能体助手"）。
+- 提醒区、建议区、快捷操作区、对话区分区卡片式。
+- 对话区支持上下文气泡、输入框、发送按钮。
+- 支持点击建议/提醒/操作按钮直接跳转或触发系统功能。
+
+---
+
+## 三、交互流程
+1. 用户点击右侧悬浮"🤖"按钮，弹出智能体弹窗。
+2. 智能体自动推送今日提醒、智能建议。
+3. 用户可点击快捷操作按钮，直接批量处理任务。
+4. 用户在对话区输入问题，AI即时回复。
+5. AI可根据页面上下文，主动推送相关建议或提醒。
+6. 用户可随时收起/关闭弹窗，弹窗状态全局保持。
+
+---
+
+## 四、实现建议（前端技术）
+- 组件化：用 Vue/React 封装为全局组件，挂载在 App 根节点。
+- 样式：使用 Ant Design/Element Plus 的 Drawer/Modal 组件，配合自定义样式。
+- 状态管理：用 Vuex/Pinia/Redux 管理弹窗显示、消息、快捷操作等状态。
+- AI对话：前端通过API与后端AI服务交互，支持上下文对话。
+- 快捷操作：按钮通过emit事件或全局事件总线触发系统内批量操作。
+
+---
+
+## 五、页面结构（Vue伪代码示例）
+
+```vue
+<template>
+  <div class="ai-float-btn" @click="showDrawer = true">🤖</div>
+  <a-drawer v-model:visible="showDrawer" width="400" placement="right" title="智能体助手">
+    <section class="ai-section">
+      <h4>🔔 今日提醒</h4>
+      <ul>
+        <li v-for="item in reminders" :key="item">{{ item }}</li>
+      </ul>
+    </section>
+    <section class="ai-section">
+      <h4>⚡ 智能建议</h4>
+      <ul>
+        <li v-for="item in suggestions" :key="item">{{ item }}</li>
+      </ul>
+    </section>
+    <section class="ai-section">
+      <h4>📝 快捷操作</h4>
+      <a-button v-for="btn in actions" :key="btn.text" @click="btn.action">{{ btn.text }}</a-button>
+    </section>
+    <section class="ai-section ai-chat">
+      <div v-for="msg in chatHistory" :key="msg.id" :class="msg.role">{{ msg.text }}</div>
+      <a-input-search v-model="input" enter-button="发送" @search="sendMsg"/>
+    </section>
+  </a-drawer>
+</template>
+```
+
+</rewritten_file> 

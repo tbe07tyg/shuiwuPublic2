@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>科研管理小助手AI算力需求评估报告</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #1e40af;
+            text-align: center;
+            border-bottom: 3px solid #3b82f6;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+        }
+        h2 {
+            color: #1e40af;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            padding-left: 10px;
+            border-left: 4px solid #3b82f6;
+        }
+        h3 {
+            color: #374151;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+        h4 {
+            color: #4b5563;
+            margin-top: 15px;
+            margin-bottom: 8px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+        }
+        th, td {
+            border: 1px solid #d1d5db;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f3f4f6;
+            font-weight: bold;
+            color: #374151;
+        }
+        tr:nth-child(even) {
+            background-color: #f9fafb;
+        }
+        .highlight {
+            background-color: #fef3c7;
+            padding: 15px;
+            border-left: 4px solid #f59e0b;
+            margin: 15px 0;
+        }
+        .code-block {
+            background-color: #f3f4f6;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            margin: 15px 0;
+            white-space: pre-line;
+        }
+        .recommendation {
+            background-color: #dcfce7;
+            border: 1px solid #16a34a;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .warning {
+            background-color: #fee2e2;
+            border: 1px solid #dc2626;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        ul, ol {
+            margin: 10px 0;
+            padding-left: 30px;
+        }
+        li {
+            margin: 5px 0;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #e5e7eb;
+            color: #6b7280;
+        }
+        @media print {
+            body { background: white; }
+            .container { box-shadow: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 科研管理小助手AI算力需求评估报告</h1>
+
+        <h2>📋 项目概述</h2>
+        
+        <h3>项目背景</h3>
+        <p>本项目旨在为科研管理系统开发AI智能助手，提供智能化的项目管理、材料审核、风险预警等功能。基于现有的Vue 3 + Ant Design Vue技术栈，需要集成本地化部署的大语言模型。</p>
+
+        <h3>核心功能需求</h3>
+        <ul>
+            <li><strong>今日提醒</strong>：项目节点提醒、合同到期提醒、预算预警</li>
+            <li><strong>智能建议</strong>：项目优先级建议、进度风险分析、资源优化建议</li>
+            <li><strong>快捷操作</strong>：一键批量操作、自动化流程触发</li>
+            <li><strong>智能对话</strong>：支持自然语言交互、知识问答</li>
+            <li><strong>材料审核</strong>：AI自动审核材料合规性、完整性检查</li>
+            <li><strong>数据分析</strong>：智能统计分析、报告生成</li>
+        </ul>
+
+        <h2>🎯 业务需求分析</h2>
+        
+        <h3>用户规模与使用模式</h3>
+        <div class="code-block">目标用户: 科研团队10人
+并发需求: 至少10人同时使用
+使用时间: 工作日9:00-18:00
+高峰时段: 上午10-12点，下午2-5点
+响应时间要求: &lt;3秒
+可用性要求: 99%+</div>
+
+        <h3>AI任务复杂度分析</h3>
+        
+        <h4>高复杂度任务 (⭐⭐⭐⭐⭐)</h4>
+        <ul>
+            <li><strong>材料智能审核</strong>: 200页申报书审核、预算一致性检查、政策法规合规性</li>
+            <li><strong>合同智能解析</strong>: 付款条款识别、项目节点配置、法律风险识别</li>
+            <li><strong>风险预警分析</strong>: 多维度数据关联分析、趋势预测</li>
+        </ul>
+
+        <h4>中等复杂度任务 (⭐⭐⭐)</h4>
+        <ul>
+            <li><strong>填报助手</strong>: 模板匹配推荐、内容智能补全</li>
+            <li><strong>知识问答</strong>: 科研管理领域问答、政策解读</li>
+        </ul>
+
+        <h4>简单任务 (⭐⭐)</h4>
+        <ul>
+            <li><strong>提醒生成</strong>: 日程提醒文案、状态通知</li>
+        </ul>
+
+        <h2>🤖 大语言模型评估</h2>
+        
+        <h3>DeepSeek-R1完整模型系列对比</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>模型版本</th>
+                    <th>参数规模</th>
+                    <th>模型大小</th>
+                    <th>显存需求</th>
+                    <th>推理速度</th>
+                    <th>并发能力</th>
+                    <th>任务适用性</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>1.5B-Q4</strong></td>
+                    <td>15亿</td>
+                    <td>1.1GB</td>
+                    <td>~2GB</td>
+                    <td>80-120 t/s</td>
+                    <td>2-3人</td>
+                    <td>简单任务</td>
+                </tr>
+                <tr>
+                    <td><strong>7B-Q4</strong></td>
+                    <td>70亿</td>
+                    <td>4.7GB</td>
+                    <td>~6GB</td>
+                    <td>45-65 t/s</td>
+                    <td>3-5人</td>
+                    <td>简单-中等任务</td>
+                </tr>
+                <tr>
+                    <td><strong>14B-Q4</strong></td>
+                    <td>140亿</td>
+                    <td>9.0GB</td>
+                    <td>~12GB</td>
+                    <td>30-45 t/s</td>
+                    <td>4-6人</td>
+                    <td>中等任务</td>
+                </tr>
+                <tr style="background-color: #dcfce7;">
+                    <td><strong>32B-Q4</strong></td>
+                    <td>320亿</td>
+                    <td>20GB</td>
+                    <td>~22GB</td>
+                    <td>20-35 t/s</td>
+                    <td>5-8人</td>
+                    <td>中高等任务</td>
+                </tr>
+                <tr>
+                    <td><strong>70B-Q4</strong></td>
+                    <td>700亿</td>
+                    <td>43GB</td>
+                    <td>~45GB</td>
+                    <td>15-25 t/s</td>
+                    <td>6-10人</td>
+                    <td>复杂任务</td>
+                </tr>
+                <tr>
+                    <td><strong>671B-Q4</strong></td>
+                    <td>6710亿</td>
+                    <td>404GB</td>
+                    <td>~450GB</td>
+                    <td>25-40 t/s</td>
+                    <td>15-30人</td>
+                    <td>最复杂任务</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3>量化技术说明</h3>
+        <h4>Q4量化技术详解</h4>
+        <ul>
+            <li><strong>原理</strong>: 将模型参数从FP16(16位浮点)压缩到INT4(4位整数)</li>
+            <li><strong>压缩比</strong>: 4:1，显存需求降低75%</li>
+            <li><strong>质量损失</strong>: 约5%，对实际使用影响较小</li>
+            <li><strong>速度提升</strong>: 2-3倍推理速度提升</li>
+        </ul>
+
+        <div class="recommendation">
+            <h3>🎯 推荐模型选择：DeepSeek-R1 32B</h3>
+            <h4>方案优势</h4>
+            <ul>
+                <li><strong>能力平衡</strong>：满足80%的复杂任务需求</li>
+                <li><strong>并发适中</strong>：支持5-8人同时使用</li>
+                <li><strong>成本合理</strong>：显存需求22GB，单卡可部署</li>
+                <li><strong>响应速度</strong>：平均2-3秒响应时间</li>
+            </ul>
+            <p><strong>适用场景</strong>: 标准科研团队，平衡性能与成本</p>
+        </div>
+
+        <h2>💻 硬件方案评估</h2>
+        
+        <h3>显卡配置方案 (基于32B模型)</h3>
+        
+        <h4>单卡高显存方案</h4>
+        <table>
+            <thead>
+                <tr>
+                    <th>显卡型号</th>
+                    <th>显存容量</th>
+                    <th>价格</th>
+                    <th>并发能力</th>
+                    <th>推荐度</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>RTX 5090</strong></td>
+                    <td>32GB</td>
+                    <td>¥20,000</td>
+                    <td>4-6人</td>
+                    <td>⭐⭐⭐⭐</td>
+                </tr>
+                <tr style="background-color: #dcfce7;">
+                    <td><strong>RTX A6000</strong></td>
+                    <td>48GB</td>
+                    <td>¥35,000</td>
+                    <td>8-12人</td>
+                    <td>⭐⭐⭐⭐⭐</td>
+                </tr>
+                <tr style="background-color: #dcfce7;">
+                    <td><strong>A40</strong></td>
+                    <td>48GB</td>
+                    <td>¥30,000</td>
+                    <td>8-12人</td>
+                    <td>⭐⭐⭐⭐⭐</td>
+                </tr>
+                <tr>
+                    <td><strong>L40S</strong></td>
+                    <td>48GB</td>
+                    <td>¥45,000</td>
+                    <td>8-12人</td>
+                    <td>⭐⭐⭐⭐</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2>🏢 算力一体机方案</h2>
+        
+        <div class="highlight">
+            <h3>浪潮信息方案 (推荐)</h3>
+            <div class="code-block">产品: 浪潮 AGX-2
+配置:
+- GPU: 2×RTX A6000 (96GB总显存)
+- CPU: 双路Intel Xeon
+- 内存: 256GB DDR4 ECC
+- 存储: 4TB NVMe
+价格: ¥48,000-55,000
+并发能力: 15-20人
+优势: 性价比高，部署简单</div>
+        </div>
+
+        <h2>💰 总拥有成本分析 (TCO)</h2>
+        
+        <h3>TCO = Total Cost of Ownership (总拥有成本)</h3>
+        
+        <h4>3年TCO对比</h4>
+        <table>
+            <thead>
+                <tr>
+                    <th>方案类型</th>
+                    <th>初始投资</th>
+                    <th>3年运营成本</th>
+                    <th>3年总成本</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr style="background-color: #dcfce7;">
+                    <td><strong>一体机方案</strong></td>
+                    <td>¥48,000</td>
+                    <td>¥118,818</td>
+                    <td>¥166,818</td>
+                </tr>
+                <tr>
+                    <td><strong>自建方案</strong></td>
+                    <td>¥61,000</td>
+                    <td>¥130,000+</td>
+                    <td>¥191,000+</td>
+                </tr>
+                <tr>
+                    <td><strong>云服务方案</strong></td>
+                    <td>¥0</td>
+                    <td>¥180,000</td>
+                    <td>¥180,000</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="recommendation">
+            <h2>🎯 最终推荐方案</h2>
+            <h3>综合推荐：浪潮AGX-2一体机 + DeepSeek-R1 32B</h3>
+            
+            <h4>方案优势</h4>
+            <ol>
+                <li><strong>性能匹配</strong>: 32B模型满足科研管理场景80%需求</li>
+                <li><strong>并发充足</strong>: 支持15-20人同时使用，超过需求</li>
+                <li><strong>成本适中</strong>: 总投资¥48,000，3年TCO最优</li>
+                <li><strong>部署简单</strong>: 一体机开箱即用，无需复杂配置</li>
+                <li><strong>扩展性好</strong>: 可根据用户增长升级到70B模型</li>
+            </ol>
+
+            <h4>实施步骤</h4>
+            <ol>
+                <li><strong>采购设备</strong> (1周): 联系浪潮采购AGX-2一体机</li>
+                <li><strong>环境准备</strong> (1周): 机房网络、电力准备</li>
+                <li><strong>系统部署</strong> (1周): 安装Ollama、部署DeepSeek-R1 32B</li>
+                <li><strong>功能开发</strong> (4周): 开发AI助手接口和前端界面</li>
+                <li><strong>测试上线</strong> (2周): 功能测试、性能调优、正式上线</li>
+            </ol>
+        </div>
+
+        <h2>📊 性能预期</h2>
+        
+        <div class="code-block">预期指标:
+- 响应时间: 平均2-3秒
+- 并发用户: 15-20人
+- 可用性: 99.5%
+- 准确率: 85%+ (复杂任务)
+
+监控指标:
+- GPU利用率
+- 内存使用率
+- 请求延迟
+- 并发连接数
+- 模型准确率</div>
+
+        <div class="footer">
+            <p><em>报告生成时间: 2025年</em></p>
+            <p><em>版本: v1.0</em></p>
+        </div>
+    </div>
+</body>
+</html> 

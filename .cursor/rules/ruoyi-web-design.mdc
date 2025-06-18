@@ -1,0 +1,853 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# 国企科研管理系统 Web 页面设计规范
+
+## RuoYi 框架简介
+RuoYi 是一个基于 SpringBoot 的权限管理系统，具有以下特点：
+- 前后端分离架构
+- 基于 Vue + Ant Design Vue 的前端框架
+- 完善的权限管理
+- 丰富的组件库
+- 代码生成功能
+
+## 目录结构规范
+```
+src/
+├── api/                # API 接口定义
+├── assets/            # 静态资源
+├── components/        # 公共组件
+├── layout/           # 布局组件
+├── router/           # 路由配置
+├── store/            # 状态管理
+├── styles/           # 样式文件
+├── utils/            # 工具函数
+└── views/            # 页面组件
+    └── literature/   # 文献管理模块
+```
+
+## 组件设计规范
+
+### 1. 页面组件结构
+```vue
+<template>
+  <div class="app-container">
+    <!-- 搜索区域 -->
+    <a-form :model="queryParams" ref="queryForm" layout="inline">
+      <!-- 搜索表单项 -->
+    </a-form>
+
+    <!-- 操作按钮区域 -->
+    <a-row :gutter="10" class="mb8">
+      <!-- 操作按钮 -->
+    </a-row>
+
+    <!-- 数据表格 -->
+    <a-table :dataSource="tableData" :loading="loading" rowKey="id">
+      <!-- 表格列 -->
+    </a-table>
+
+    <!-- 分页组件 -->
+    <a-pagination :total="total" v-model:current="queryParams.pageNum" v-model:pageSize="queryParams.pageSize" @change="getList" />
+
+    <!-- 弹窗组件 -->
+    <a-modal v-model:open="modalVisible" title="表单">
+      <!-- 表单内容 -->
+    </a-modal>
+  </div>
+</template>
+```
+
+### 2. API 接口规范
+```typescript
+// 接口命名规范
+export function listXXX(query) {
+  return request({
+    url: '/xxx/list',
+    method: 'get',
+    params: query
+  })
+}
+
+export function getXXX(id) {
+  return request({
+    url: `/xxx/${id}`,
+    method: 'get'
+  })
+}
+
+export function addXXX(data) {
+  return request({
+    url: '/xxx',
+    method: 'post',
+    data: data
+  })
+}
+```
+
+### 3. 权限控制规范
+```typescript
+// 路由配置
+{
+  path: '/xxx',
+  component: Layout,
+  name: 'XXX',
+  meta: {
+    title: '模块名称',
+    icon: 'icon-name',
+    permissions: ['xxx:view']
+  }
+}
+
+// 按钮权限
+<a-button v-hasPermi="['xxx:add']">新增</a-button>
+```
+
+## 集成到 RuoYi 的步骤
+
+1. **环境准备**
+   - 安装 Node.js (推荐 v16+)
+   - 安装 Vue CLI
+   - 克隆 RuoYi-Vue 项目
+
+2. **项目配置**
+   - 修改 `vue.config.js` 配置
+   - 配置 API 接口地址
+   - 配置路由权限
+
+3. **开发流程**
+   - 在 `src/views` 下创建模块目录
+   - 在 `src/api` 下创建接口文件
+   - 在 `src/router` 下配置路由
+   - 在 `src/store` 下管理状态
+
+4. **代码生成**
+   - 使用 RuoYi 代码生成功能
+   - 选择对应的模板
+   - 配置生成参数
+
+## 最佳实践
+
+1. **组件复用**
+   - 使用 RuoYi 提供的公共组件
+   - 遵循组件设计规范
+   - 保持组件的单一职责
+
+2. **样式规范**
+   - 使用 Less 预处理器
+   - 遵循 BEM 命名规范
+   - 使用 Ant Design Vue 的主题变量
+
+3. **性能优化**
+   - 路由懒加载
+   - 组件按需加载
+   - 合理使用缓存
+
+4. **代码质量**
+   - 使用 ESLint 规范代码
+   - 编写单元测试
+   - 做好代码注释
+
+## 注意事项
+
+1. **权限控制**
+   - 所有功能必须配置权限
+   - 使用 `v-hasPermi` 指令
+   - 遵循最小权限原则
+
+2. **数据安全**
+   - 敏感数据加密
+   - 防止 XSS 攻击
+   - 防止 SQL 注入
+
+3. **用户体验**
+   - 统一的交互方式
+   - 友好的错误提示
+   - 合理的加载状态
+
+4. **维护性**
+   - 清晰的代码结构
+   - 完整的文档说明
+   - 规范的命名方式
+
+## RuoYi 框架集成规范
+
+### 1. 路由集成规范
+```javascript
+// 路由配置示例
+export default {
+  path: '/research',  // 科研管理模块
+  component: Layout,
+  name: 'Research',
+  meta: { 
+    title: '科研管理',
+    icon: 'research',
+    permissions: ['research:view']
+  },
+  children: [
+    {
+      path: 'literature',
+      component: () => import('@/views/research/literature/index'),
+      name: 'Literature',
+      meta: { 
+        title: '文献管理',
+        permissions: ['research:literature:list']
+      }
+    }
+  ]
+}
+
+// 页面跳转方式
+// 1. 使用 router-link
+<router-link to="/research/literature">文献管理</router-link>
+
+// 2. 使用编程式导航
+const router = useRouter()
+router.push('/research/literature')
+
+// 3. 带参数跳转
+router.push({
+  path: '/research/literature/detail',
+  query: { id: 1 }
+})
+```
+
+### 2. 权限控制集成
+```javascript
+// 1. 路由权限
+{
+  path: '/research/literature',
+  meta: {
+    permissions: ['research:literature:list']
+  }
+}
+
+// 2. 按钮权限
+<a-button v-hasPermi="['research:literature:add']">新增</a-button>
+
+// 3. 方法权限
+import { hasPermi } from '@/utils/permission'
+
+if (hasPermi(['research:literature:edit'])) {
+  // 执行编辑操作
+}
+```
+
+### 3. API 接口集成
+```javascript
+// 1. 请求封装
+import request from '@/utils/request'
+
+// 2. 接口定义
+export function listLiterature(query) {
+  return request({
+    url: '/research/literature/list',
+    method: 'get',
+    params: query
+  })
+}
+
+// 3. 接口使用
+import { listLiterature } from '@/api/research/literature'
+
+const getList = async () => {
+  try {
+    const res = await listLiterature(queryParams)
+    // 处理响应数据
+  } catch (error) {
+    // 错误处理
+  }
+}
+```
+
+### 4. 组件集成规范
+
+#### 4.1 布局组件
+```vue
+<template>
+  <div class="app-container">
+    <!-- 使用 RuoYi 布局组件 -->
+    <a-row :gutter="20">
+      <a-col :span="24">
+        <!-- 页面内容 -->
+      </a-col>
+    </a-row>
+  </div>
+</template>
+```
+
+#### 4.2 表单组件
+```vue
+<template>
+  <a-form
+    ref="formRef"
+    :model="form"
+    :rules="rules"
+    label-col="{ span: 6 }"
+    wrapper-col="{ span: 14 }"
+  >
+    <!-- 表单项 -->
+  </a-form>
+</template>
+
+<script setup>
+import { ref, reactive } from 'vue'
+import { message } from 'ant-design-vue'
+
+// 表单校验规则
+const rules = {
+  name: [
+    { required: true, message: '请输入名称', trigger: 'blur' }
+  ]
+}
+</script>
+```
+
+#### 4.3 表格组件
+```vue
+<template>
+  <a-table
+    :loading="loading"
+    :dataSource="tableData"
+    rowKey="id"
+    @change="handleTableChange"
+  >
+    <!-- 表格列 -->
+  </a-table>
+  
+  <!-- 分页组件 -->
+  <a-pagination
+    v-show="total>0"
+    :total="total"
+    v-model:current="queryParams.pageNum"
+    v-model:pageSize="queryParams.pageSize"
+    @change="getList"
+  />
+</template>
+```
+
+### 5. 状态管理集成
+```javascript
+// 1. 定义 store
+import { defineStore } from 'pinia'
+
+export const useResearchStore = defineStore('research', {
+  state: () => ({
+    // 状态定义
+  }),
+  actions: {
+    // 操作方法
+  }
+})
+
+// 2. 使用 store
+import { useResearchStore } from '@/store/modules/research'
+
+const store = useResearchStore()
+```
+
+### 6. 工具函数集成
+```javascript
+// 1. 日期格式化
+import { parseTime } from '@/utils/ruoyi'
+
+// 2. 数据字典
+import { getDicts } from '@/api/system/dict/data'
+
+// 3. 文件上传
+import { uploadFile } from '@/utils/upload'
+```
+
+### 7. 样式集成规范
+```less
+// 1. 使用 Ant Design Vue 变量
+@import "~ant-design-vue/dist/antd.less";
+
+// 2. 组件样式
+.research-container {
+  // 使用 Ant Design Vue 的间距变量
+  padding: @padding-lg;
+  
+  // 使用 Ant Design Vue 的颜色变量
+  background-color: @component-background;
+}
+```
+
+### 8. 错误处理集成
+```javascript
+// 1. 请求错误处理
+import { message } from 'ant-design-vue'
+
+try {
+  await api()
+} catch (error) {
+  message.error(error.message)
+}
+
+// 2. 表单验证错误处理
+const formRef = ref()
+const validateForm = async () => {
+  try {
+    await formRef.value.validate()
+    // 验证通过
+  } catch (error) {
+    // 验证失败
+  }
+}
+```
+
+### 9. 国际化集成
+```javascript
+// 1. 使用 i18n
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
+const title = t('research.literature.title')
+
+// 2. 语言文件
+export default {
+  research: {
+    literature: {
+      title: '文献管理'
+    }
+  }
+}
+```
+
+### 10. 开发流程规范
+
+1. **代码规范**
+   - 使用 ESLint 进行代码检查
+   - 使用 Prettier 进行代码格式化
+   - 遵循 Vue 3 组合式 API 规范
+
+2. **Git 规范**
+   - 使用 feature 分支开发新功能
+   - 提交信息遵循规范
+   - 代码审查后再合并
+
+3. **测试规范**
+   - 编写单元测试
+   - 进行集成测试
+   - 进行性能测试
+
+4. **文档规范**
+   - 编写组件文档
+   - 编写 API 文档
+   - 编写部署文档
+
+### 11. 性能优化规范
+
+1. **代码优化**
+   - 使用路由懒加载
+   - 使用组件按需加载
+   - 使用 keep-alive 缓存组件
+
+2. **请求优化**
+   - 使用请求防抖
+   - 使用请求缓存
+   - 使用数据预加载
+
+3. **渲染优化**
+   - 使用虚拟滚动
+   - 使用分页加载
+   - 使用图片懒加载
+
+### 12. 安全规范
+
+1. **数据安全**
+   - 敏感数据加密
+   - 防止 XSS 攻击
+   - 防止 CSRF 攻击
+
+2. **权限安全**
+   - 严格的权限控制
+   - 数据访问控制
+   - 操作日志记录
+
+3. **接口安全**
+   - 参数验证
+   - 请求签名
+   - 频率限制
+
+## 一、页面开发优先级
+
+### 1. 优先级1（基础流程）
+- 登录页 → 工作台 → 项目立项页 → 项目审批页 → 项目看板页
+
+### 2. 优先级2（增强功能）
+- 文献检索页 → AI审核侧边栏 → 经费审批页 → 统计分析页
+
+### 3. 优先级3（扩展功能）
+- 专家管理页 → 系统配置页 → 消息中心页
+
+## 二、关键页面设计规范
+
+### 1. 登录页设计规范
+#### 1.1 功能需求
+| 功能          | 操作                | 特殊要求                  |
+|---------------|---------------------|---------------------------|
+| 账号登录      | 用户名+密码输入     | 支持国资云统一身份认证    |
+| 安全验证      | 短信验证码          | 错误3次后触发人工审核     |
+
+#### 1.2 页面布局
+- **布局**：居中卡片式（国企LOGO置顶）
+- **主题**：纯色背景（#F5F5F5）+ 深蓝主按钮
+
+#### 1.3 数据展示
+| 数据字段      | 展示形式          | 特效                |
+|---------------|-------------------|---------------------|
+| 登录历史      | 悬浮提示          | 异常IP标红          |
+
+#### 1.4 权限控制
+- 所有角色共用同一登录入口
+- 首次登录强制修改初始密码
+
+### 2. 工作台设计规范
+#### 2.1 功能需求
+| 功能          | 操作                | 特殊要求                  |
+|---------------|---------------------|---------------------------|
+| 待办聚合      | 点击直接处理        | 按紧急度自动排序          |
+| 项目预警      | 红黄绿状态灯        | 点击跳转到问题详情        |
+
+#### 2.2 页面布局
+- **布局**：顶部数据卡片 + 中部待办列表 + 底部日历
+- **响应式**：优先保证卡片自适应折叠
+
+#### 2.3 数据展示
+| 数据字段      | 展示形式          | 特效                |
+|---------------|-------------------|---------------------|
+| 项目统计      | 环形图+数字卡片   | 悬停显示明细        |
+| 逾期任务      | 滚动横幅          | 持续闪烁直至处理    |
+
+#### 2.4 交互要求
+- 双击日期快速创建会议
+- 拖拽待办项可调整优先级
+
+### 3. 项目立项页设计规范
+#### 3.1 功能需求
+| 功能          | 操作                | 特殊要求                  |
+|---------------|---------------------|---------------------------|
+| 智能填表      | OCR识别上传文件     | 自动提取关键字段          |
+| 预算编制      | 结构化表单          | 超历史均值时弹窗提醒      |
+
+#### 3.2 页面布局
+- **布局**：左侧导航锚点 + 右侧分步表单
+- **主题**：每步骤完成显示绿色进度条
+
+#### 3.3 数据展示
+| 数据字段      | 展示形式          | 特效                |
+|---------------|-------------------|---------------------|
+| 关联项目      | 下拉树形菜单      | 自动排除冲突项目    |
+
+#### 3.4 权限控制
+- 子公司人员无法查看集团级模板
+- 提交后72小时内可撤回
+
+### 4. 项目审批页设计规范
+#### 4.1 功能需求
+| 功能          | 操作                | 特殊要求                  |
+|---------------|---------------------|---------------------------|
+| 批量审批      | 勾选+一键通过       | 自动过滤合规项目          |
+| 差异对比      | 新旧版本分屏        | 文本差异高亮              |
+
+#### 4.2 页面布局
+- **布局**：上部审批工具栏 + 中部材料区 + 下部意见框
+- **移动端**：支持手势缩放PDF
+
+#### 4.3 交互要求
+- 审批意见支持语音转文字（可选）
+- 审批人修改记录留痕
+
+### 5. 项目看板页设计规范
+#### 5.1 功能需求
+| 功能          | 操作                | 特殊要求                  |
+|---------------|---------------------|---------------------------|
+| 多维筛选      | 动态条件组合        | 保存常用筛选方案          |
+| 穿透查询      | 点击图表钻取明细    | 自动生成分析结论          |
+
+#### 5.2 数据展示
+| 数据字段      | 展示形式          | 特效                |
+|---------------|-------------------|---------------------|
+| 进度对比      | 双轴折线图        | 拖拽调整时间范围    |
+
+#### 5.3 权限控制
+- 财务数据仅对指定角色可见
+- 导出功能需分管领导审批
+
+## 三、扩展页面设计原则
+
+### 1. 专家管理页
+- 采用类Excel表格编辑，支持批量导入专家库
+
+### 2. 系统配置页
+- 两级权限：基础配置（管理员可见）+ 高级配置（超级管理员可见）
+
+### 3. 消息中心
+- 区分系统消息与人工消息，支持按项目分组
+
+## 四、全局约束条件
+
+### 1. 性能要求
+- 列表页百万级数据需支持前端分页
+
+### 2. 兼容性要求
+- 需适配国产化设备（如龙芯CPU+麒麟OS）
+
+### 3. 安全要求
+- 所有导出文件添加动态水印（含操作用户ID）
+
+## 五、交付物清单
+
+### 1. UI组件库
+- 专用审批状态图标集（含SVG源文件）
+
+### 2. 交互规范
+- 加载状态：骨架屏+进度条双模式
+
+### 3. 权限矩阵
+- 精确到按钮级的RBAC配置表
+
+## 全局UI设计风格规范（基于登录页方案二-左图右表）
+
+### 1. 主色与配色方案
+- **主色（Primary）**：#234fa2（深蓝，按钮、Tabs高亮、品牌色）
+- **辅助色（Secondary）**：#4e7be6（渐变辅助蓝，用于侧边栏、品牌背景）
+- **背景色（Background）**：#f5f8ff（页面主背景）、#e6eaf2（分隔线、表单边框）
+- **卡片色（Card）**：#fff（白色卡片）
+- **字体主色**：#234fa2（标题）、#333（正文）、#fff（深色背景上的文字）
+
+### 2. 布局与结构
+- **卡片布局**：白色圆角卡片，圆角18px，阴影柔和（0 4px 32px rgba(35,79,162,0.10)）
+- **分栏布局**：推荐左侧品牌/插画，右侧表单，整体宽度720px，卡片/表单区宽度320px
+- **内边距**：卡片内padding 40px 36px 28px 36px
+
+### 3. Tabs（选项卡）
+- 横向排列，居中对齐
+- 字体18px，加粗700，主色高亮
+- 下划线高亮（3px，主色）
+- Tabs间距适中，padding: 0 16px 12px 16px
+- Tabs下方分隔线：2px，#e6eaf2
+
+### 4. 表单与输入框
+- 输入框高度44px，圆角6px，边框1.5px #e6eaf2
+- 字体16px，左右padding 12px
+- 表单项间距24px
+
+### 5. 按钮
+- 高度44px，圆角6px，主色背景#234fa2，字体白色#fff
+- 字体16px，加粗600，letter-spacing: 1px
+- 悬停时背景#1a3877
+
+### 6. 标题与品牌
+- 标题字号2rem（32px），加粗，主色#234fa2，字间距2px
+- 品牌区可用渐变色背景（#234fa2→#4e7be6），白色大标题
+
+### 7. 阴影与圆角
+- 卡片/表单统一圆角18px
+- 阴影柔和，突出卡片悬浮感
+
+### 8. 响应式
+- 保证在720px及以下屏幕下表单区自适应居中，左右padding适当收缩
+
+### 9. 其他
+- 所有页面、弹窗、表单、按钮、Tabs等均应遵循上述配色、圆角、阴影、间距、字体规范，确保风格统一。
+
+> 本规范基于"左图右表"品牌感设计，适用于国企科研管理系统所有Web页面。
+
+## 一、开发规范
+
+### 1. 模拟数据规范
+#### 1.1 模拟数据目录结构
+```
+src/
+├── mock/                # 模拟数据目录
+│   ├── index.js        # 模拟数据入口
+│   ├── user.js         # 用户相关模拟数据
+│   ├── project.js      # 项目相关模拟数据
+│   └── utils/          # 模拟数据工具函数
+```
+
+#### 1.2 模拟数据格式规范
+```javascript
+// 模拟数据示例
+export const mockData = {
+  code: 200,           // 状态码
+  msg: '操作成功',      // 提示信息
+  data: {             // 数据对象
+    // 数据结构
+  }
+}
+
+// 分页数据格式
+export const mockPageData = {
+  code: 200,
+  msg: '操作成功',
+  data: {
+    total: 100,        // 总记录数
+    rows: [],          // 数据列表
+    pageNum: 1,        // 当前页码
+    pageSize: 10       // 每页条数
+  }
+}
+```
+
+#### 1.3 模拟接口规范
+```javascript
+// 模拟接口示例
+import { mock, Random } from 'mockjs'
+
+// 登录接口
+mock('/login', 'post', {
+  code: 200,
+  msg: '登录成功',
+  data: {
+    token: Random.guid(),
+    userInfo: {
+      userId: Random.id(),
+      userName: Random.cname(),
+      avatar: Random.image()
+    }
+  }
+})
+
+// 分页列表接口
+mock('/list', 'get', {
+  code: 200,
+  msg: '操作成功',
+  data: {
+    total: 100,
+    rows: Array(10).fill(null).map(() => ({
+      id: Random.id(),
+      name: Random.ctitle(),
+      date: Random.date()
+    })),
+    pageNum: 1,
+    pageSize: 10
+  }
+})
+```
+
+#### 1.4 模拟数据使用规范
+```javascript
+// 1. 在组件中使用模拟数据
+import { mockData } from '@/mock/user'
+
+// 2. 在 API 中使用模拟数据
+export function getList() {
+  // 开发环境使用模拟数据
+  if (process.env.NODE_ENV === 'development') {
+    return Promise.resolve(mockData)
+  }
+  // 生产环境使用真实接口
+  return request({
+    url: '/list',
+    method: 'get'
+  })
+}
+
+// 3. 在 Store 中使用模拟数据
+const store = defineStore('user', {
+  actions: {
+    async login() {
+      // 开发环境使用模拟数据
+      if (process.env.NODE_ENV === 'development') {
+        return mockData
+      }
+      // 生产环境使用真实接口
+      return await login()
+    }
+  }
+})
+```
+
+### 2. 页面开发优先级
+
+### 3. 关键页面设计规范
+
+### 4. 扩展页面设计原则
+
+### 5. 全局约束条件
+
+### 6. 交付物清单
+
+## 二、开发流程规范
+
+### 1. 开发环境配置
+```javascript
+// vite.config.js
+export default defineConfig({
+  server: {
+    proxy: {
+      // 开发环境代理配置
+      '/api': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, '')
+      }
+    }
+  }
+})
+```
+
+### 2. 环境变量配置
+```bash
+# .env.development
+VITE_APP_BASE_API = '/api'
+VITE_APP_USE_MOCK = true
+
+# .env.production
+VITE_APP_BASE_API = '/api'
+VITE_APP_USE_MOCK = false
+```
+
+### 3. 开发流程
+1. **页面开发**
+   - 使用模拟数据开发页面
+   - 确保页面交互正常
+   - 完成页面样式调整
+
+2. **接口对接**
+   - 开发环境使用模拟数据
+   - 生产环境使用真实接口
+   - 保持数据结构一致
+
+3. **测试验证**
+   - 模拟数据测试
+   - 真实接口测试
+   - 兼容性测试
+
+4. **部署上线**
+   - 关闭模拟数据
+   - 配置生产环境
+   - 验证功能正常
+
+### 4. 注意事项
+1. **模拟数据管理**
+   - 保持数据结构一致性
+   - 及时更新模拟数据
+   - 避免硬编码数据
+
+2. **接口切换**
+   - 使用环境变量控制
+   - 保持接口格式一致
+   - 做好错误处理
+
+3. **性能优化**
+   - 控制模拟数据大小
+   - 避免频繁请求
+   - 使用缓存机制
+
+4. **代码规范**
+   - 统一命名规范
+   - 添加必要注释
+   - 遵循代码风格
+
+
+
+
+
+
+
