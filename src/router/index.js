@@ -114,15 +114,7 @@ const routes = [
           icon: 'LineChartOutlined'
         }
       },
-      {
-        path: 'implementation/acceptance',
-        name: 'ImplementationAcceptance',
-        component: () => import('@/views/implementation/acceptance/index.vue'),
-        meta: {
-          title: '项目验收',
-          icon: 'CheckCircleOutlined'
-        }
-      },
+
       {
         path: 'implementation/center',
         name: 'ImplementationCenter',
@@ -139,6 +131,73 @@ const routes = [
         meta: {
           title: '节点模板库',
           icon: 'AppstoreOutlined'
+        }
+      },
+      
+      // 项目验收模块路由 (v3.0角色分离版本)
+      // 申报单位角色路由
+      {
+        path: 'acceptance/application/manage',
+        name: 'AcceptanceApplicationManage',
+        component: () => import('@/views/acceptance/applicant/manage.vue'),
+        meta: {
+          title: '验收申请管理',
+          icon: 'FolderOutlined'
+        }
+      },
+      {
+        path: 'acceptance/application/submit',
+        name: 'AcceptanceApplicationSubmit',
+        component: () => import('@/views/acceptance/applicant/submit.vue'),
+        meta: {
+          title: '提交验收申请',
+          icon: 'PlusOutlined'
+        }
+      },
+      {
+        path: 'acceptance/progress/query',
+        name: 'AcceptanceProgressQuery',
+        component: () => import('@/views/acceptance/applicant/progress.vue'),
+        meta: {
+          title: '验收进度查询',
+          icon: 'SearchOutlined'
+        }
+      },
+      // 管理角色路由
+      {
+        path: 'acceptance/management/center',
+        name: 'AcceptanceManagementCenter',
+        component: () => import('@/views/acceptance/management/center.vue'),
+        meta: {
+          title: '验收管理中心',
+          icon: 'AppstoreOutlined'
+        }
+      },
+      {
+        path: 'acceptance/project/archive',
+        name: 'AcceptanceProjectArchive',
+        component: () => import('@/views/acceptance/management/archive.vue'),
+        meta: {
+          title: '项目历史档案',
+          icon: 'DatabaseOutlined'
+        }
+      },
+      {
+        path: 'acceptance/material/review',
+        name: 'AcceptanceMaterialReview',
+        component: () => import('@/views/acceptance/management/review.vue'),
+        meta: {
+          title: '材料审核管理',
+          icon: 'FileSearchOutlined'
+        }
+      },
+      {
+        path: 'acceptance/meeting/conclusion',
+        name: 'AcceptanceMeetingConclusion',
+        component: () => import('@/views/acceptance/management/conclusion.vue'),
+        meta: {
+          title: '会议结论管理',
+          icon: 'ScheduleOutlined'
         }
       },
       

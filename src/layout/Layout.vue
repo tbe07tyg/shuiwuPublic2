@@ -83,21 +83,18 @@
         <!-- 项目实施 -->
         <a-sub-menu key="project-implementation">
           <template #title>
-            <SettingOutlined style="margin-right:8px;" />
-            <span>项目实施</span>
-            <div class="urgent-tag" v-if="hasUrgentImplementation">🔴</div>
+            <span style="display: flex; align-items: center; width: 100%;">
+              <SettingOutlined style="margin-right:8px;" />
+              <span>项目实施</span>
+              <div class="urgent-tag" v-if="hasUrgentImplementation">🔴</div>
+            </span>
           </template>
           <a-menu-item key="implementation-center">
-            <AppstoreOutlined style="margin-right:8px;" />
             <span style="display: flex; align-items: center; width: 100%;">
+              <AppstoreOutlined style="margin-right:8px;" />
               <span>项目实施管理中心</span>
               <span class="item-count"></span>
             </span>
-          </a-menu-item>
-          <a-menu-item key="implementation-contract">
-            <ContainerOutlined style="margin-right:8px;" />
-            <span>合同管理</span>
-            <span class="item-count">({{ counts.contracts }})</span>
           </a-menu-item>
           <a-menu-item key="implementation-opening" @click.stop="showDrawer('opening')">
             <span style="display: flex; align-items: center; width: 100%;">
@@ -111,21 +108,85 @@
               <span>项目中期</span>
             </span>
           </a-menu-item>
-          <a-menu-item key="implementation-acceptance" @click.stop="showDrawer('acceptance')">
+          <a-menu-item key="implementation-contract">
             <span style="display: flex; align-items: center; width: 100%;">
-              <CheckCircleOutlined style="margin-right:8px;" />
-              <span>项目验收</span>
+              <ContainerOutlined style="margin-right:8px;" />
+              <span>合同管理</span>
+              <span class="item-count">({{ counts.contracts }})</span>
             </span>
           </a-menu-item>
           <a-menu-item key="implementation-payment">
-            <DollarOutlined style="margin-right:8px;" />
-            <span>经费执行进度</span>
-            <span class="item-count">({{ counts.payments }})</span>
+            <span style="display: flex; align-items: center; width: 100%;">
+              <DollarOutlined style="margin-right:8px;" />
+              <span>经费执行进度</span>
+              <span class="item-count">({{ counts.payments }})</span>
+            </span>
           </a-menu-item>
           <a-menu-item key="implementation-progress">
-            <BarChartOutlined style="margin-right:8px;" />
-            <span>进度监控</span>
-            <span class="item-count">({{ counts.progress }})</span>
+            <span style="display: flex; align-items: center; width: 100%;">
+              <BarChartOutlined style="margin-right:8px;" />
+              <span>进度监控</span>
+              <span class="item-count">({{ counts.progress }})</span>
+            </span>
+          </a-menu-item>
+        </a-sub-menu>
+        
+        <!-- 项目验收 -->
+        <a-sub-menu key="project-acceptance">
+          <template #title>
+            <span style="display: flex; align-items: center; width: 100%;">
+              <CheckCircleOutlined style="margin-right:8px;" />
+              <span>项目验收</span>
+              <div class="urgent-tag" v-if="hasUrgentAcceptance">🔴</div>
+            </span>
+          </template>
+          
+          <!-- 申报单位角色 (橙色图标) -->
+          <a-menu-item key="acceptance-application-manage">
+            <span style="display: flex; align-items: center; width: 100%;">
+              <FolderOutlined style="margin-right:8px; color: #fa8c16;" />
+              <span>验收申请管理</span>
+              <span class="item-count">({{ counts.applications }})</span>
+            </span>
+          </a-menu-item>
+          <a-menu-item key="acceptance-application-submit">
+            <span style="display: flex; align-items: center; width: 100%;">
+              <PlusOutlined style="margin-right:8px; color: #fa8c16;" />
+              <span>提交验收申请</span>
+            </span>
+          </a-menu-item>
+          <a-menu-item key="acceptance-progress-query">
+            <span style="display: flex; align-items: center; width: 100%;">
+              <SearchOutlined style="margin-right:8px; color: #fa8c16;" />
+              <span>验收进度查询</span>
+            </span>
+          </a-menu-item>
+          
+          <!-- 管理角色 (蓝色图标) -->
+          <a-menu-item key="acceptance-management-center">
+            <span style="display: flex; align-items: center; width: 100%;">
+              <AppstoreOutlined style="margin-right:8px; color: #1890ff;" />
+              <span>验收管理中心</span>
+              <span class="item-count">({{ counts.acceptance }})</span>
+            </span>
+          </a-menu-item>
+          <a-menu-item key="acceptance-project-archive">
+            <span style="display: flex; align-items: center; width: 100%;">
+              <DatabaseOutlined style="margin-right:8px; color: #1890ff;" />
+              <span>项目历史档案</span>
+            </span>
+          </a-menu-item>
+          <a-menu-item key="acceptance-material-review">
+            <span style="display: flex; align-items: center; width: 100%;">
+              <FileSearchOutlined style="margin-right:8px; color: #1890ff;" />
+              <span>材料审核管理</span>
+            </span>
+          </a-menu-item>
+          <a-menu-item key="acceptance-meeting-conclusion">
+            <span style="display: flex; align-items: center; width: 100%;">
+              <ScheduleOutlined style="margin-right:8px; color: #1890ff;" />
+              <span>会议结论管理</span>
+            </span>
           </a-menu-item>
         </a-sub-menu>
       </a-sub-menu>
@@ -291,7 +352,8 @@ import {
   ClusterOutlined, DollarOutlined, SafetyOutlined,
   UnorderedListOutlined, BarChartOutlined, PieChartOutlined, FundOutlined,
   RocketOutlined, MailOutlined, ToolOutlined, UserOutlined,
-  FileAddOutlined, ScheduleOutlined, RightOutlined, TrophyOutlined
+  FileAddOutlined, ScheduleOutlined, RightOutlined, TrophyOutlined,
+  PlusOutlined, FileSearchOutlined
 } from '@ant-design/icons-vue'
 
 const router = useRouter()
@@ -318,10 +380,10 @@ const selectedKey = computed(() => {
   return key ? [key] : ['dashboard']
 })
 
-// 默认展开的菜单
-const openKeys = ref(['project', 'research', 'approval', 'implementation', 'maintenance'])
+// 默认展开的菜单 (v3.0增加project-acceptance)
+const openKeys = ref(['project', 'research', 'approval', 'implementation', 'project-acceptance', 'maintenance'])
 
-// 数据统计 (实际项目中从API获取) - v2.0简化版本
+// 数据统计 (实际项目中从API获取) - v3.0版本
 const counts = ref({
   requirements: 123,
   results: 32,
@@ -331,7 +393,8 @@ const counts = ref({
   contracts: 12,
   payments: 18,
   progress: 25,
-  acceptance: 6,
+  acceptance: 12, // 待验收项目数量（管理角色）
+  applications: 8, // 验收申请数量（申报单位角色）
   achievements: 45
 })
 
@@ -353,7 +416,7 @@ const currentStage = ref('')
 const drawerTitle = ref('')
 const customSelectedKeys = ref([])
 
-// 抽屉副标题配置
+// 抽屉副标题配置 (v3.0移除acceptance)
 const drawerSubtitle = computed(() => {
   const subtitles = {
     opening: {
@@ -363,10 +426,6 @@ const drawerSubtitle = computed(() => {
     midterm: {
       submit: '提交中期检查报告、阶段性成果',
       meeting: '组织中期检查会议、评审进展'
-    },
-    acceptance: {
-      submit: '提交验收申请、成果材料等',
-      meeting: '组织验收会议、专家评审验收'
     }
   }
   return subtitles[currentStage.value] || { submit: '', meeting: '' }
@@ -377,8 +436,8 @@ function onOpenChange(keys) {
 }
 
 function onMenuClick({ key }) {
-  // 跳过抽屉菜单项
-  if (['implementation-opening', 'implementation-midterm', 'implementation-acceptance'].includes(key)) {
+  // 跳过抽屉菜单项 (v3.0移除acceptance)
+  if (['implementation-opening', 'implementation-midterm'].includes(key)) {
     return
   }
   
@@ -407,6 +466,17 @@ function onMenuClick({ key }) {
     'implementation-payment': '/implementation/payment',
     'implementation-progress': '/implementation/progress',
     
+    // 项目验收路由 (v3.0角色分离版本)
+    // 申报单位角色
+    'acceptance-application-manage': '/acceptance/application/manage',
+    'acceptance-application-submit': '/acceptance/application/submit',
+    'acceptance-progress-query': '/acceptance/progress/query',
+    // 管理角色
+    'acceptance-management-center': '/acceptance/management/center',
+    'acceptance-project-archive': '/acceptance/project/archive',
+    'acceptance-material-review': '/acceptance/material/review',
+    'acceptance-meeting-conclusion': '/acceptance/meeting/conclusion',
+    
     // 统计分析路由
     'analysis': '/analytics',
     'analytics-project': '/analytics/project',
@@ -428,13 +498,12 @@ function onMenuClick({ key }) {
   }
 }
 
-// 显示抽屉
+// 显示抽屉 (v3.0移除acceptance)
 function showDrawer(stage) {
   currentStage.value = stage
   const titles = {
     opening: '项目开题',
-    midterm: '项目中期',
-    acceptance: '项目验收'
+    midterm: '项目中期'
   }
   drawerTitle.value = titles[stage] || ''
   drawerVisible.value = true
@@ -527,9 +596,17 @@ function navigateToPage(type) {
   padding: 0 20px 0 40px !important;
   border-radius: 6px;
   margin: 4px 0;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+}
+
+/* 确保二级菜单项内容对齐 */
+.main-sider :deep(.ant-menu .ant-menu .ant-menu-item > span) {
+  display: flex !important;
+  align-items: center !important;
+  width: 100% !important;
+  justify-content: space-between !important;
 }
 
 /* 三级菜单项样式 */

@@ -684,7 +684,7 @@ onMounted(() => {
     margin-bottom: 16px;
   }
   
-  /* 移动端状态列布局：最多2列 */
+  /* 小屏幕状态列布局：最多2列 */
   .status-board .ant-row .ant-col {
     flex: 0 0 50% !important;
     max-width: 50% !important;
