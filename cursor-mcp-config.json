@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "word-document-server": {
+      "command": "word_mcp_server",
+      "env": {
+        "MCP_TRANSPORT": "stdio"
+      }
+    }
+  }
+} 

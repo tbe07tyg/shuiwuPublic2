@@ -238,12 +238,35 @@
                       :before-upload="() => false"
                       @change="(info) => handleMaterialUpload(info, material.key)"
                       accept=".pdf,.doc,.docx,.zip,.rar"
+                      :show-upload-list="false"
                     >
                       <a-button>
                         <UploadOutlined />
                         选择文件
                       </a-button>
                     </a-upload>
+                    
+                    <!-- 自定义文件列表 -->
+                    <div v-if="material.fileList.length > 0" class="file-list">
+                      <div v-for="file in material.fileList" :key="file.uid" class="file-item">
+                        <div class="file-info">
+                          <FileTextOutlined class="file-icon" />
+                          <span class="file-name">{{ file.name }}</span>
+                          <span class="file-size">{{ formatFileSize(file.size) }}</span>
+                        </div>
+                        <div class="file-actions">
+                          <a-button type="link" size="small" @click="previewMaterial(file)">
+                            预览
+                          </a-button>
+                          <a-button type="link" size="small" @click="downloadMaterial(file)">
+                            下载
+                          </a-button>
+                          <a-button type="link" size="small" danger @click="removeMaterial(material, file)">
+                            删除
+                          </a-button>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -268,12 +291,35 @@
                       :before-upload="() => false"
                       @change="(info) => handleMaterialUpload(info, material.key)"
                       accept=".pdf,.doc,.docx,.zip,.rar"
+                      :show-upload-list="false"
                     >
                       <a-button>
                         <UploadOutlined />
                         选择文件
                       </a-button>
                     </a-upload>
+                    
+                    <!-- 自定义文件列表 -->
+                    <div v-if="material.fileList.length > 0" class="file-list">
+                      <div v-for="file in material.fileList" :key="file.uid" class="file-item">
+                        <div class="file-info">
+                          <FileTextOutlined class="file-icon" />
+                          <span class="file-name">{{ file.name }}</span>
+                          <span class="file-size">{{ formatFileSize(file.size) }}</span>
+                        </div>
+                        <div class="file-actions">
+                          <a-button type="link" size="small" @click="previewMaterial(file)">
+                            预览
+                          </a-button>
+                          <a-button type="link" size="small" @click="downloadMaterial(file)">
+                            下载
+                          </a-button>
+                          <a-button type="link" size="small" danger @click="removeMaterial(material, file)">
+                            删除
+                          </a-button>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -296,6 +342,13 @@
         </div>
       </a-form>
     </div>
+
+    <!-- 文件预览弹窗 -->
+    <FilePreview
+      v-model:visible="previewVisible"
+      :file-info="currentPreviewFile"
+      @download="handleDownloadFile"
+    />
   </div>
 </template>
 
@@ -319,6 +372,7 @@ import {
   ExclamationCircleOutlined
 } from '@ant-design/icons-vue'
 import { message } from 'ant-design-vue'
+import FilePreview from '@/components/FilePreview.vue'
 
 const router = useRouter()
 const formRef = ref()
@@ -473,6 +527,10 @@ const submitting = ref(false)
 // 审核意见
 const reviewComments = ref('')
 
+// 文件预览相关
+const previewVisible = ref(false)
+const currentPreviewFile = ref({})
+
 // 项目状态颜色
 const getProjectStatusColor = (status) => {
   const colorMap = {
@@ -519,6 +577,58 @@ const handleMaterialUpload = (info, materialKey) => {
   if (material) {
     material.fileList = info.fileList
   }
+}
+
+// 预览材料文件
+const previewMaterial = (file) => {
+  currentPreviewFile.value = {
+    id: file.uid,
+    name: file.name,
+    type: file.type,
+    size: file.size,
+    url: file.url || URL.createObjectURL(file.originFileObj || file),
+    uploadTime: new Date().toLocaleString()
+  }
+  
+  previewVisible.value = true
+}
+
+// 下载材料文件
+const downloadMaterial = (file) => {
+  const link = document.createElement('a')
+  link.href = file.url || URL.createObjectURL(file.originFileObj || file)
+  link.download = file.name
+  link.click()
+  
+  message.success(`正在下载：${file.name}`)
+}
+
+// 处理文件下载事件
+const handleDownloadFile = (fileInfo) => {
+  const link = document.createElement('a')
+  link.href = fileInfo.url
+  link.download = fileInfo.name
+  link.click()
+  
+  message.success(`正在下载：${fileInfo.name}`)
+}
+
+// 删除材料文件
+const removeMaterial = (material, file) => {
+  const index = material.fileList.findIndex(f => f.uid === file.uid)
+  if (index > -1) {
+    material.fileList.splice(index, 1)
+    message.success('文件删除成功')
+  }
+}
+
+// 格式化文件大小
+const formatFileSize = (size) => {
+  if (!size) return ''
+  if (size < 1024) return size + 'B'
+  if (size < 1024 * 1024) return (size / 1024).toFixed(1) + 'KB'
+  if (size < 1024 * 1024 * 1024) return (size / 1024 / 1024).toFixed(1) + 'MB'
+  return (size / 1024 / 1024 / 1024).toFixed(1) + 'GB'
 }
 
 const handleSaveDraft = async () => {
@@ -832,6 +942,61 @@ onMounted(() => {
 
 .material-upload {
   flex-shrink: 0;
+}
+
+/* 文件列表样式 */
+.file-list {
+  margin-top: 12px;
+}
+
+.file-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: #fff;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  transition: all 0.3s ease;
+}
+
+.file-item:last-child {
+  margin-bottom: 0;
+}
+
+.file-item:hover {
+  border-color: #40a9ff;
+  background: #f0f9ff;
+}
+
+.file-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.file-icon {
+  color: #1890ff;
+  font-size: 14px;
+}
+
+.file-name {
+  color: #262626;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.file-size {
+  color: #8c8c8c;
+  font-size: 12px;
+  margin-left: 8px;
+}
+
+.file-actions {
+  display: flex;
+  gap: 4px;
 }
 
 /* 审核意见样式 */

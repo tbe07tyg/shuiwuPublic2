@@ -179,10 +179,7 @@
           </div>
           <div class="management-actions">
             <a-space direction="vertical" style="width: 100%">
-              <a-button @click="goToMaterialReview" block size="large">
-                <FileSearchOutlined />
-                材料审核管理
-              </a-button>
+
               <a-button @click="goToProjectArchive" block size="large">
                 <DatabaseOutlined />
                 项目历史档案
@@ -383,9 +380,11 @@
               </div>
               <div class="material-actions">
                 <a-button type="link" size="small" @click="previewMaterial(material)">
+                  <EyeOutlined />
                   预览
                 </a-button>
                 <a-button type="link" size="small" @click="downloadMaterial(material)">
+                  <DownloadOutlined />
                   下载
                 </a-button>
               </div>
@@ -1101,6 +1100,13 @@
         </div>
       </div>
     </a-modal>
+
+    <!-- 文件预览弹窗 -->
+    <FilePreview
+      v-model:visible="previewVisible"
+      :file-info="currentPreviewFile"
+      @download="handleDownloadFile"
+    />
   </div>
 </template>
 
@@ -1132,6 +1138,7 @@ import {
   ExclamationCircleOutlined
 } from '@ant-design/icons-vue'
 import { message, Modal } from 'ant-design-vue'
+import FilePreview from '@/components/FilePreview.vue'
 
 const router = useRouter()
 
@@ -1148,9 +1155,9 @@ const projects = ref([
     submitTime: '2024-01-15',
     meetingScheduled: false,
     materials: [
-      { id: 1, name: '项目验收报告.pdf', type: '验收报告', reviewStatus: 'pending' },
-      { id: 2, name: '项目总结报告.pdf', type: '总结报告', reviewStatus: 'pending' },
-      { id: 3, name: '成果汇总材料.zip', type: '成果材料', reviewStatus: 'pending' }
+      { id: 1, name: '项目验收报告.pdf', type: '验收报告', size: 2500000, url: '/api/files/download/项目验收报告.pdf', reviewStatus: 'pending' },
+      { id: 2, name: '项目总结报告.docx', type: '总结报告', size: 1200000, url: '/api/files/download/项目总结报告.docx', reviewStatus: 'pending' },
+      { id: 3, name: '成果汇总材料.zip', type: '成果材料', size: 8500000, url: '/api/files/download/成果汇总材料.zip', reviewStatus: 'pending' }
     ]
   },
   {
@@ -1164,8 +1171,8 @@ const projects = ref([
     submitTime: '2024-01-20',
     meetingScheduled: false,
     materials: [
-      { id: 4, name: '项目验收报告.pdf', type: '验收报告', reviewStatus: 'approved' },
-      { id: 5, name: '财务决算报告.pdf', type: '财务报告', reviewStatus: 'approved' }
+      { id: 4, name: '项目验收报告.pdf', type: '验收报告', size: 1800000, url: '/api/files/download/项目验收报告.pdf', reviewStatus: 'approved' },
+      { id: 5, name: '财务决算报告.xlsx', type: '财务报告', size: 500000, url: '/api/files/download/财务决算报告.xlsx', reviewStatus: 'approved' }
     ]
   },
   {
@@ -1185,8 +1192,8 @@ const projects = ref([
       description: '项目验收会议，重点评审环境监测系统的技术实现'
     },
     materials: [
-      { id: 6, name: '项目验收报告.pdf', type: '验收报告', reviewStatus: 'approved' },
-      { id: 7, name: '系统测试报告.pdf', type: '测试报告', reviewStatus: 'approved' }
+      { id: 6, name: '项目验收报告.pdf', type: '验收报告', size: 2500000, url: '/api/files/download/项目验收报告.pdf', reviewStatus: 'approved' },
+      { id: 7, name: '系统测试报告.pdf', type: '测试报告', size: 1500000, url: '/api/files/download/系统测试报告.pdf', reviewStatus: 'approved' }
     ]
   },
   {
@@ -1206,7 +1213,7 @@ const projects = ref([
       description: '项目验收会议，邀请相关专家进行评审'
     },
     materials: [
-      { id: 8, name: '项目验收报告.pdf', type: '验收报告', reviewStatus: 'approved' }
+      { id: 8, name: '项目验收报告.pdf', type: '验收报告', size: 2500000, url: '/api/files/download/项目验收报告.pdf', reviewStatus: 'approved' }
     ],
     conclusion: {
       result: 'passed',
@@ -1232,11 +1239,11 @@ const projects = ref([
       description: '项目验收会议，采用线上线下结合的方式进行'
     },
     materials: [
-      { id: 9, name: '项目验收报告.pdf', type: '验收报告', reviewStatus: 'approved' },
-      { id: 10, name: '用户操作手册.pdf', type: '用户手册', reviewStatus: 'approved' },
-      { id: 11, name: '数据备份机制说明.pdf', type: '整改材料', reviewStatus: 'pending' },
-      { id: 12, name: '系统界面优化报告.pdf', type: '整改材料', reviewStatus: 'pending' },
-      { id: 13, name: '技术文档补充.zip', type: '整改材料', reviewStatus: 'pending' }
+      { id: 9, name: '项目验收报告.pdf', type: '验收报告', size: 2500000, url: '/api/files/download/项目验收报告.pdf', reviewStatus: 'approved' },
+      { id: 10, name: '用户操作手册.pdf', type: '用户手册', size: 800000, url: '/api/files/download/用户操作手册.pdf', reviewStatus: 'approved' },
+      { id: 11, name: '数据备份机制说明.pdf', type: '整改材料', size: 600000, url: '/api/files/download/数据备份机制说明.pdf', reviewStatus: 'pending' },
+      { id: 12, name: '系统界面优化报告.docx', type: '整改材料', size: 1200000, url: '/api/files/download/系统界面优化报告.docx', reviewStatus: 'pending' },
+      { id: 13, name: '技术文档补充.zip', type: '整改材料', size: 5000000, url: '/api/files/download/技术文档补充.zip', reviewStatus: 'pending' }
     ],
     conclusion: {
       result: 'conditional_passed',
@@ -1266,7 +1273,7 @@ const projects = ref([
       description: '项目验收会议，重点关注系统稳定性和功能完整性'
     },
     materials: [
-      { id: 11, name: '项目验收报告.pdf', type: '验收报告', reviewStatus: 'approved' }
+      { id: 14, name: '项目验收报告.pdf', type: '验收报告', size: 2500000, url: '/api/files/download/项目验收报告.pdf', reviewStatus: 'approved' }
     ],
     conclusion: {
       result: 'failed',
@@ -1419,6 +1426,10 @@ const improvementReviewForm = ref({
   requirements: ''
 })
 
+// 文件预览相关
+const previewVisible = ref(false)
+const currentPreviewFile = ref({})
+
 // 计算属性
 const filteredProjects = computed(() => {
   let result = projects.value
@@ -1561,9 +1572,7 @@ const handleSearch = () => {
   // 搜索逻辑已在计算属性中处理
 }
 
-const goToMaterialReview = () => {
-  router.push('/acceptance/material/review')
-}
+
 
 const goToProjectArchive = () => {
   router.push('/acceptance/project/archive')
@@ -1909,11 +1918,47 @@ const handleImprovementReviewCancel = () => {
 }
 
 const previewMaterial = (material) => {
-  message.info(`预览材料：${material.name}`)
+  // 构建文件信息对象
+  currentPreviewFile.value = {
+    id: material.id,
+    name: material.name,
+    type: material.type,
+    size: material.size || generateFileSize(material.name),
+    url: generateFileUrl(material.name),
+    uploadTime: material.uploadTime || '2024-01-15 10:30'
+  }
+  
+  previewVisible.value = true
 }
 
 const downloadMaterial = (material) => {
-  message.success(`下载材料：${material.name}`)
+  // 模拟下载
+  const link = document.createElement('a')
+  link.href = generateFileUrl(material.name)
+  link.download = material.name
+  link.click()
+  
+  message.success(`正在下载：${material.name}`)
+}
+
+// 处理文件下载事件
+const handleDownloadFile = (fileInfo) => {
+  downloadMaterial(fileInfo)
+}
+
+// 生成模拟文件大小
+const generateFileSize = (fileName) => {
+  if (fileName.includes('.pdf')) return 2.5 * 1024 * 1024 // 2.5MB
+  if (fileName.includes('.docx')) return 1.2 * 1024 * 1024 // 1.2MB
+  if (fileName.includes('.pptx')) return 3.8 * 1024 * 1024 // 3.8MB
+  if (fileName.includes('.zip')) return 8.5 * 1024 * 1024 // 8.5MB
+  return 1.5 * 1024 * 1024 // 默认1.5MB
+}
+
+// 生成模拟文件URL
+const generateFileUrl = (fileName) => {
+  // 实际项目中这里应该是真实的文件下载URL
+  return `/api/files/download/${encodeURIComponent(fileName)}`
 }
 
 // 材料审核相关方法

@@ -35,6 +35,15 @@ const routes = [
         name: 'ProjectDetail',
         component: () => import('@/views/project/detail.vue')
       },
+      {
+        path: 'project/archive',
+        name: 'ProjectArchive',
+        component: () => import('@/views/acceptance/management/archive.vue'),
+        meta: {
+          title: '历史档案',
+          icon: 'DatabaseOutlined'
+        }
+      },
       
       // 项目调研模块路由 (第1周已开发完成)
       {
@@ -141,7 +150,7 @@ const routes = [
         name: 'AcceptanceApplicationManage',
         component: () => import('@/views/acceptance/applicant/manage.vue'),
         meta: {
-          title: '验收申请管理',
+          title: '申请管理',
           icon: 'FolderOutlined'
         }
       },
@@ -150,7 +159,7 @@ const routes = [
         name: 'AcceptanceApplicationSubmit',
         component: () => import('@/views/acceptance/applicant/submit.vue'),
         meta: {
-          title: '提交验收申请',
+          title: '提交验收',
           icon: 'PlusOutlined'
         }
       },
@@ -159,7 +168,7 @@ const routes = [
         name: 'AcceptanceProgressQuery',
         component: () => import('@/views/acceptance/applicant/progress.vue'),
         meta: {
-          title: '验收进度查询',
+          title: '进度查询',
           icon: 'SearchOutlined'
         }
       },
@@ -169,34 +178,18 @@ const routes = [
         name: 'AcceptanceManagementCenter',
         component: () => import('@/views/acceptance/management/center.vue'),
         meta: {
-          title: '验收管理中心',
+          title: '管理中心',
           icon: 'AppstoreOutlined'
         }
       },
-      {
-        path: 'acceptance/project/archive',
-        name: 'AcceptanceProjectArchive',
-        component: () => import('@/views/acceptance/management/archive.vue'),
-        meta: {
-          title: '项目历史档案',
-          icon: 'DatabaseOutlined'
-        }
-      },
-      {
-        path: 'acceptance/material/review',
-        name: 'AcceptanceMaterialReview',
-        component: () => import('@/views/acceptance/management/review.vue'),
-        meta: {
-          title: '材料审核管理',
-          icon: 'FileSearchOutlined'
-        }
-      },
+
+
       {
         path: 'acceptance/meeting/conclusion',
         name: 'AcceptanceMeetingConclusion',
         component: () => import('@/views/acceptance/management/conclusion.vue'),
         meta: {
-          title: '会议结论管理',
+          title: '会议管理',
           icon: 'ScheduleOutlined'
         }
       },
@@ -237,6 +230,8 @@ const routes = [
         name: 'AnalyticsEfficiency',
         component: () => import('@/views/analytics/index.vue')
       },
+
+
       
       // 保留原有路由
       {

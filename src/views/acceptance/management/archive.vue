@@ -72,194 +72,224 @@
       </a-form>
     </div>
 
-    <!-- 项目档案列表 -->
+    <!-- 项目档案列表 - 横向紧凑布局 -->
     <div class="archive-list">
       <div
         v-for="project in filteredProjects"
         :key="project.id"
         class="archive-item"
       >
-        <!-- 项目基本信息 -->
+        <!-- 项目基本信息 - 横向布局 -->
         <div class="project-header">
-          <div class="project-info">
-            <h3 class="project-name">{{ project.name }}</h3>
-            <div class="project-meta">
-              <span class="project-code">{{ project.code }}</span>
-              <span class="project-leader">负责人：{{ project.leader }}</span>
-              <span class="project-duration">
-                {{ project.startDate }} ~ {{ project.endDate }}
-              </span>
+          <div class="project-basic">
+            <div class="project-main-info">
+              <h3 class="project-name">{{ project.name }}</h3>
+              <div class="project-meta">
+                <a-tag color="blue">{{ project.code }}</a-tag>
+                <span class="project-leader">{{ project.leader }}</span>
+                <span class="project-duration">{{ project.startDate }} ~ {{ project.endDate }}</span>
+              </div>
+            </div>
+            <div class="project-status">
+              <a-tag :color="getStatusColor(project.currentStatus)" size="large">
+                {{ getStatusText(project.currentStatus) }}
+              </a-tag>
             </div>
           </div>
-          <div class="project-status">
-            <a-tag :color="getStatusColor(project.currentStatus)" size="large">
-              {{ getStatusText(project.currentStatus) }}
-            </a-tag>
+          
+          <!-- 快速统计信息 -->
+          <div class="project-quick-stats">
+            <div class="stat-item">
+              <span class="stat-value">{{ project.stats.duration }}</span>
+              <span class="stat-label">月</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-value">{{ project.stats.budget }}</span>
+              <span class="stat-label">万元</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-value">{{ project.stats.achievements }}</span>
+              <span class="stat-label">成果</span>
+            </div>
           </div>
         </div>
 
-        <!-- 项目进度时间线 -->
-        <div class="project-timeline">
-          <a-timeline>
+        <!-- 项目进度 - 横向阶段卡片 -->
+        <div class="project-phases">
+          <div class="phases-container">
             <!-- 开题阶段 -->
-            <a-timeline-item
-              :color="getPhaseColor('opening', project.phases.opening)"
-            >
-              <template #dot>
+            <div class="phase-card" :class="getPhaseCardClass('opening', project.phases.opening)">
+              <div class="phase-icon">
                 <RocketOutlined v-if="project.phases.opening.status === 'completed'" />
-                <ClockCircleOutlined v-else />
-              </template>
-              <div class="timeline-content">
-                <div class="phase-header">
-                  <h4>项目开题</h4>
-                  <span class="phase-time">{{ project.phases.opening.time }}</span>
+                <ClockCircleOutlined v-else-if="project.phases.opening.status === 'in_progress'" />
+                <ExclamationCircleOutlined v-else />
+              </div>
+              <div class="phase-content">
+                <div class="phase-title">项目开题</div>
+                <div class="phase-time">{{ project.phases.opening.time || '未开始' }}</div>
+                <div class="phase-meeting">
+                  会议：{{ project.phases.opening.meetingDate || '未安排' }}
                 </div>
-                <div class="phase-details">
-                  <div class="phase-info">
-                    <span class="info-label">开题会议：</span>
-                    <span>{{ project.phases.opening.meetingDate || '未安排' }}</span>
-                  </div>
-                  <div class="phase-info">
-                    <span class="info-label">会议结论：</span>
-                    <span>{{ project.phases.opening.conclusion || '待定' }}</span>
-                  </div>
-                  <div class="phase-actions">
-                    <a-button
-                      type="link"
-                      size="small"
-                      @click="viewPhaseDetail(project, 'opening')"
-                    >
-                      查看详情
-                    </a-button>
-                    <a-button
-                      v-if="project.phases.opening.materials"
-                      type="link"
-                      size="small"
-                      @click="downloadPhaseMaterials(project, 'opening')"
-                    >
-                      下载材料
-                    </a-button>
-                  </div>
+                <div class="phase-conclusion">
+                  {{ project.phases.opening.conclusion || '待定' }}
                 </div>
               </div>
-            </a-timeline-item>
+              <div class="phase-actions">
+                <a-button
+                  type="link"
+                  size="small"
+                  @click="viewPhaseDetail(project, 'opening')"
+                >
+                  详情
+                </a-button>
+                <a-button
+                  v-if="project.phases.opening.materials"
+                  type="link"
+                  size="small"
+                  @click="downloadPhaseMaterials(project, 'opening')"
+                >
+                  材料
+                </a-button>
+              </div>
+            </div>
+
+            <!-- 阶段连接线 -->
+            <div class="phase-connector" :class="{ 'active': project.phases.opening.status === 'completed' }">
+              <div class="connector-line"></div>
+              <RightOutlined class="connector-arrow" />
+            </div>
 
             <!-- 中期阶段 -->
-            <a-timeline-item
-              :color="getPhaseColor('midterm', project.phases.midterm)"
-            >
-              <template #dot>
+            <div class="phase-card" :class="getPhaseCardClass('midterm', project.phases.midterm)">
+              <div class="phase-icon">
                 <PieChartOutlined v-if="project.phases.midterm.status === 'completed'" />
-                <ClockCircleOutlined v-else />
-              </template>
-              <div class="timeline-content">
-                <div class="phase-header">
-                  <h4>项目中期</h4>
-                  <span class="phase-time">{{ project.phases.midterm.time }}</span>
+                <ClockCircleOutlined v-else-if="project.phases.midterm.status === 'in_progress'" />
+                <ExclamationCircleOutlined v-else />
+              </div>
+              <div class="phase-content">
+                <div class="phase-title">项目中期</div>
+                <div class="phase-time">{{ project.phases.midterm.time || '未开始' }}</div>
+                <div class="phase-meeting">
+                  会议：{{ project.phases.midterm.meetingDate || '未安排' }}
                 </div>
-                <div class="phase-details">
-                  <div class="phase-info">
-                    <span class="info-label">中期会议：</span>
-                    <span>{{ project.phases.midterm.meetingDate || '未安排' }}</span>
-                  </div>
-                  <div class="phase-info">
-                    <span class="info-label">会议结论：</span>
-                    <span>{{ project.phases.midterm.conclusion || '待定' }}</span>
-                  </div>
-                  <div class="phase-actions">
-                    <a-button
-                      type="link"
-                      size="small"
-                      @click="viewPhaseDetail(project, 'midterm')"
-                    >
-                      查看详情
-                    </a-button>
-                    <a-button
-                      v-if="project.phases.midterm.materials"
-                      type="link"
-                      size="small"
-                      @click="downloadPhaseMaterials(project, 'midterm')"
-                    >
-                      下载材料
-                    </a-button>
-                  </div>
+                <div class="phase-conclusion">
+                  {{ project.phases.midterm.conclusion || '待定' }}
                 </div>
               </div>
-            </a-timeline-item>
+              <div class="phase-actions">
+                <a-button
+                  type="link"
+                  size="small"
+                  @click="viewPhaseDetail(project, 'midterm')"
+                >
+                  详情
+                </a-button>
+                <a-button
+                  v-if="project.phases.midterm.materials"
+                  type="link"
+                  size="small"
+                  @click="downloadPhaseMaterials(project, 'midterm')"
+                >
+                  材料
+                </a-button>
+              </div>
+            </div>
+
+            <!-- 阶段连接线 -->
+            <div class="phase-connector" :class="{ 'active': project.phases.midterm.status === 'completed' }">
+              <div class="connector-line"></div>
+              <RightOutlined class="connector-arrow" />
+            </div>
 
             <!-- 验收阶段 -->
-            <a-timeline-item
-              :color="getPhaseColor('acceptance', project.phases.acceptance)"
-            >
-              <template #dot>
+            <div class="phase-card" :class="getPhaseCardClass('acceptance', project.phases.acceptance)">
+              <div class="phase-icon">
                 <CheckCircleOutlined v-if="project.phases.acceptance.status === 'completed'" />
-                <ClockCircleOutlined v-else />
-              </template>
-              <div class="timeline-content">
-                <div class="phase-header">
-                  <h4>项目验收</h4>
-                  <span class="phase-time">{{ project.phases.acceptance.time }}</span>
+                <ClockCircleOutlined v-else-if="project.phases.acceptance.status === 'in_progress'" />
+                <ExclamationCircleOutlined v-else />
+              </div>
+              <div class="phase-content">
+                <div class="phase-title">项目验收</div>
+                <div class="phase-time">{{ project.phases.acceptance.time || '未开始' }}</div>
+                <div class="phase-meeting">
+                  会议：{{ project.phases.acceptance.meetingDate || '未安排' }}
                 </div>
-                <div class="phase-details">
-                  <div class="phase-info">
-                    <span class="info-label">验收会议：</span>
-                    <span>{{ project.phases.acceptance.meetingDate || '未安排' }}</span>
-                  </div>
-                  <div class="phase-info">
-                    <span class="info-label">验收结论：</span>
-                    <span>{{ project.phases.acceptance.conclusion || '待定' }}</span>
-                  </div>
-                  <div class="phase-actions">
-                    <a-button
-                      type="link"
-                      size="small"
-                      @click="viewPhaseDetail(project, 'acceptance')"
-                    >
-                      查看详情
-                    </a-button>
-                    <a-button
-                      v-if="project.phases.acceptance.materials"
-                      type="link"
-                      size="small"
-                      @click="downloadPhaseMaterials(project, 'acceptance')"
-                    >
-                      下载材料
-                    </a-button>
-                  </div>
+                <div class="phase-conclusion">
+                  {{ project.phases.acceptance.conclusion || '待定' }}
                 </div>
               </div>
-            </a-timeline-item>
-          </a-timeline>
-        </div>
+              <div class="phase-actions">
+                <a-button
+                  type="link"
+                  size="small"
+                  @click="viewPhaseDetail(project, 'acceptance')"
+                >
+                  详情
+                </a-button>
+                <a-button
+                  v-if="project.phases.acceptance.materials"
+                  type="link"
+                  size="small"
+                  @click="downloadPhaseMaterials(project, 'acceptance')"
+                >
+                  材料
+                </a-button>
+              </div>
+            </div>
 
-        <!-- 项目统计信息 -->
-        <div class="project-stats">
-          <a-row :gutter="16">
-            <a-col :span="6">
-              <div class="stat-item">
-                <div class="stat-value">{{ project.stats.duration }}</div>
-                <div class="stat-label">项目周期(月)</div>
+            <!-- 阶段连接线 -->
+            <div class="phase-connector" :class="{ 'active': project.phases.acceptance.status === 'completed' }">
+              <div class="connector-line"></div>
+              <RightOutlined class="connector-arrow" />
+            </div>
+
+            <!-- 相关成果 -->
+            <div class="phase-card achievements-card" :class="getAchievementsCardClass(project)">
+              <div class="phase-icon">
+                <TrophyOutlined v-if="project.achievements && project.achievements.length > 0" />
+                <ExclamationCircleOutlined v-else />
               </div>
-            </a-col>
-            <a-col :span="6">
-              <div class="stat-item">
-                <div class="stat-value">{{ project.stats.budget }}</div>
-                <div class="stat-label">项目预算(万)</div>
+              <div class="phase-content">
+                <div class="phase-title">相关成果</div>
+                <div class="phase-time">
+                  {{ project.achievements ? project.achievements.length : 0 }} 项成果
+                </div>
+                <div class="achievements-list">
+                  <div 
+                    v-if="project.achievements && project.achievements.length > 0"
+                    class="achievement-summary"
+                  >
+                    <div v-for="(achievement, index) in project.achievements.slice(0, 2)" :key="index" class="achievement-item">
+                      {{ achievement.title }}
+                    </div>
+                    <div v-if="project.achievements.length > 2" class="more-achievements">
+                      还有 {{ project.achievements.length - 2 }} 项成果...
+                    </div>
+                  </div>
+                  <div v-else class="no-achievements">
+                    暂无绑定成果
+                  </div>
+                </div>
               </div>
-            </a-col>
-            <a-col :span="6">
-              <div class="stat-item">
-                <div class="stat-value">{{ project.stats.members }}</div>
-                <div class="stat-label">团队人数</div>
+              <div class="phase-actions">
+                <a-button
+                  type="link"
+                  size="small"
+                  @click="viewProjectAchievements(project)"
+                >
+                  查看
+                </a-button>
+                <a-button
+                  v-if="project.achievements && project.achievements.length > 0"
+                  type="link"
+                  size="small"
+                  @click="exportAchievements(project)"
+                >
+                  导出
+                </a-button>
               </div>
-            </a-col>
-            <a-col :span="6">
-              <div class="stat-item">
-                <div class="stat-value">{{ project.stats.achievements }}</div>
-                <div class="stat-label">成果数量</div>
-              </div>
-            </a-col>
-          </a-row>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -398,8 +428,11 @@ import {
   SearchOutlined,
   RocketOutlined,
   PieChartOutlined,
+  RightOutlined,
+  ExclamationCircleOutlined,
   CheckCircleOutlined,
-  ClockCircleOutlined
+  ClockCircleOutlined,
+  TrophyOutlined
 } from '@ant-design/icons-vue'
 import { message } from 'ant-design-vue'
 
@@ -488,9 +521,15 @@ const projects = ref([
     stats: {
       duration: 12,
       budget: 500,
-      members: 8,
       achievements: 15
-    }
+    },
+    achievements: [
+      { title: '智慧城市数据分析平台V1.0', type: '软件著作权' },
+      { title: '基于大数据的城市治理方法研究', type: '论文' },
+      { title: '城市数据安全防护技术专利', type: '发明专利' },
+      { title: '大数据平台架构设计报告', type: '技术报告' },
+      { title: '智慧城市建设标准规范', type: '标准规范' }
+    ]
   },
   {
     id: 2,
@@ -523,9 +562,13 @@ const projects = ref([
     stats: {
       duration: 12,
       budget: 300,
-      members: 6,
       achievements: 8
-    }
+    },
+    achievements: [
+      { title: '区块链供应链管理系统V1.0', type: '软件著作权' },
+      { title: '供应链金融风险评估模型', type: '论文' },
+      { title: '区块链数据存储优化方法', type: '发明专利' }
+    ]
   }
 ])
 
@@ -579,6 +622,30 @@ const getPhaseColor = (phaseType, phase) => {
   if (phase.status === 'completed') return 'green'
   if (phase.status === 'in_progress') return 'blue'
   return 'gray'
+}
+
+// 获取阶段卡片样式类
+const getPhaseCardClass = (phaseType, phaseData) => {
+  if (!phaseData) return 'phase-pending'
+  
+  switch (phaseData.status) {
+    case 'completed':
+      return 'phase-completed'
+    case 'in_progress':
+      return 'phase-active'
+    case 'pending':
+      return 'phase-pending'
+    default:
+      return 'phase-pending'
+  }
+}
+
+// 获取成果卡片样式类
+const getAchievementsCardClass = (project) => {
+  if (project.achievements && project.achievements.length > 0) {
+    return 'phase-completed'  // 有成果时显示完成状态
+  }
+  return 'phase-pending'  // 无成果时显示待定状态
 }
 
 const getPhaseTitle = (type) => {
@@ -646,6 +713,17 @@ const previewMaterial = (material) => {
 
 const downloadMaterial = (material) => {
   message.success(`下载材料：${material.name}`)
+}
+
+// 查看项目成果
+const viewProjectAchievements = (project) => {
+  message.info(`查看${project.name}的相关成果`)
+  // 这里可以跳转到成果管理页面或打开成果详情弹窗
+}
+
+// 导出项目成果
+const exportAchievements = (project) => {
+  message.success(`导出${project.name}的成果清单`)
 }
 
 // 生命周期
@@ -724,16 +802,24 @@ onMounted(() => {
   overflow: hidden;
 }
 
-/* 项目头部样式 */
+/* 项目头部样式 - 横向布局 */
 .project-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  padding: 24px;
+  padding: 20px 24px;
   border-bottom: 1px solid #f0f0f0;
 }
 
-.project-info h3 {
+.project-basic {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex: 1;
+  margin-right: 24px;
+}
+
+.project-main-info h3 {
   margin: 0 0 8px 0;
   font-size: 18px;
   font-weight: 600;
@@ -742,82 +828,210 @@ onMounted(() => {
 
 .project-meta {
   display: flex;
-  gap: 16px;
-  font-size: 14px;
-  color: #8c8c8c;
-}
-
-/* 时间线样式 */
-.project-timeline {
-  padding: 24px;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.timeline-content {
-  width: 100%;
-}
-
-.phase-header {
-  display: flex;
-  justify-content: space-between;
   align-items: center;
+  gap: 12px;
+  font-size: 14px;
+  color: #595959;
+}
+
+.project-leader::before {
+  content: "👤 ";
+}
+
+.project-duration::before {
+  content: "📅 ";
+}
+
+/* 快速统计信息 */
+.project-quick-stats {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+
+.project-quick-stats .stat-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 14px;
+}
+
+.project-quick-stats .stat-value {
+  font-weight: 600;
+  color: #1890ff;
+  font-size: 16px;
+}
+
+.project-quick-stats .stat-label {
+  color: #8c8c8c;
+  font-size: 12px;
+}
+
+/* 横向阶段展示 */
+.project-phases {
+  padding: 20px 24px;
+}
+
+.phases-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: space-between;
+}
+
+/* 阶段卡片样式 */
+.phase-card {
+  flex: 1;
+  min-width: 200px;
+  padding: 16px;
+  border-radius: 8px;
+  border: 2px solid #f0f0f0;
+  background: #fafafa;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.phase-card.phase-completed {
+  border-color: #52c41a;
+  background: #f6ffed;
+}
+
+.phase-card.phase-active {
+  border-color: #1890ff;
+  background: #f0f8ff;
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.15);
+}
+
+.phase-card.phase-pending {
+  border-color: #d9d9d9;
+  background: #f5f5f5;
+}
+
+.phase-icon {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  font-size: 18px;
+}
+
+.phase-completed .phase-icon {
+  color: #52c41a;
+}
+
+.phase-active .phase-icon {
+  color: #1890ff;
+}
+
+.phase-pending .phase-icon {
+  color: #d9d9d9;
+}
+
+.phase-content {
   margin-bottom: 12px;
 }
 
-.phase-header h4 {
-  margin: 0;
-  font-size: 16px;
+.phase-title {
+  font-size: 14px;
   font-weight: 600;
   color: #262626;
+  margin-bottom: 8px;
 }
 
 .phase-time {
   font-size: 12px;
   color: #8c8c8c;
+  margin-bottom: 6px;
 }
 
-.phase-details {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+.phase-meeting {
+  font-size: 12px;
+  color: #595959;
+  margin-bottom: 4px;
 }
 
-.phase-info {
-  display: flex;
-  gap: 8px;
-  font-size: 14px;
-}
-
-.info-label {
-  color: #8c8c8c;
-  min-width: 80px;
+.phase-conclusion {
+  font-size: 12px;
+  color: #262626;
+  font-weight: 500;
+  min-height: 16px;
 }
 
 .phase-actions {
   display: flex;
   gap: 8px;
-  margin-top: 8px;
+  justify-content: center;
 }
 
-/* 统计信息样式 */
-.project-stats {
-  padding: 20px 24px;
+/* 阶段连接线 */
+.phase-connector {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  width: 40px;
+  height: 2px;
+  margin: 0 8px;
 }
 
-.stat-item {
-  text-align: center;
+.connector-line {
+  width: 100%;
+  height: 2px;
+  background: #f0f0f0;
+  transition: background-color 0.3s ease;
 }
 
-.stat-value {
-  font-size: 20px;
-  font-weight: 600;
-  color: #262626;
-  margin-bottom: 4px;
+.phase-connector.active .connector-line {
+  background: #52c41a;
 }
 
-.stat-label {
+.connector-arrow {
+  position: absolute;
+  right: -6px;
   font-size: 12px;
+  color: #d9d9d9;
+  transition: color 0.3s ease;
+}
+
+.phase-connector.active .connector-arrow {
+  color: #52c41a;
+}
+
+/* 成果卡片特殊样式 */
+.achievements-card {
+  background: linear-gradient(145deg, #fff8e1 0%, #fff3c4 100%);
+  border-color: #faad14 !important;
+}
+
+.achievements-card.phase-completed {
+  background: linear-gradient(145deg, #f6ffed 0%, #d9f7be 100%);
+  border-color: #52c41a !important;
+}
+
+.achievements-list {
+  min-height: 40px;
+  font-size: 12px;
+}
+
+.achievement-item {
+  color: #262626;
+  line-height: 1.4;
+  margin-bottom: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.more-achievements {
   color: #8c8c8c;
+  font-style: italic;
+  margin-top: 2px;
+}
+
+.no-achievements {
+  color: #d9d9d9;
+  font-style: italic;
+  text-align: center;
+  padding: 8px 0;
 }
 
 /* 空状态样式 */

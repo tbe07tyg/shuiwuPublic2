@@ -20,7 +20,7 @@
         </span>
       </a-menu-item>
       
-      <a-sub-menu key="project">
+      <a-sub-menu key="project" data-menu-id="project">
         <template #title>
           <ProjectOutlined style="margin-right:8px;" />
           <span>项目管理</span>
@@ -30,7 +30,7 @@
         </template>
         
         <!-- 项目调研 -->
-        <a-sub-menu key="project-research">
+        <a-sub-menu key="project-research" data-menu-id="project-research">
           <template #title>
             <SearchOutlined style="margin-right:8px;" />
             <span>项目调研</span>
@@ -49,7 +49,7 @@
         </a-sub-menu>
         
         <!-- 项目立项 -->
-        <a-sub-menu key="project-approval">
+        <a-sub-menu key="project-approval" data-menu-id="project-approval">
           <template #title>
             <AuditOutlined style="margin-right:8px;" />
             <span>项目立项</span>
@@ -81,7 +81,7 @@
         </a-sub-menu>
         
         <!-- 项目实施 -->
-        <a-sub-menu key="project-implementation">
+        <a-sub-menu key="project-implementation" data-menu-id="project-implementation">
           <template #title>
             <span style="display: flex; align-items: center; width: 100%;">
               <SettingOutlined style="margin-right:8px;" />
@@ -132,7 +132,7 @@
         </a-sub-menu>
         
         <!-- 项目验收 -->
-        <a-sub-menu key="project-acceptance">
+        <a-sub-menu key="project-acceptance" data-menu-id="project-acceptance">
           <template #title>
             <span style="display: flex; align-items: center; width: 100%;">
               <CheckCircleOutlined style="margin-right:8px;" />
@@ -145,20 +145,20 @@
           <a-menu-item key="acceptance-application-manage">
             <span style="display: flex; align-items: center; width: 100%;">
               <FolderOutlined style="margin-right:8px; color: #fa8c16;" />
-              <span>验收申请管理</span>
+              <span>申请管理</span>
               <span class="item-count">({{ counts.applications }})</span>
             </span>
           </a-menu-item>
           <a-menu-item key="acceptance-application-submit">
             <span style="display: flex; align-items: center; width: 100%;">
               <PlusOutlined style="margin-right:8px; color: #fa8c16;" />
-              <span>提交验收申请</span>
+              <span>提交验收</span>
             </span>
           </a-menu-item>
           <a-menu-item key="acceptance-progress-query">
             <span style="display: flex; align-items: center; width: 100%;">
               <SearchOutlined style="margin-right:8px; color: #fa8c16;" />
-              <span>验收进度查询</span>
+              <span>进度查询</span>
             </span>
           </a-menu-item>
           
@@ -166,26 +166,32 @@
           <a-menu-item key="acceptance-management-center">
             <span style="display: flex; align-items: center; width: 100%;">
               <AppstoreOutlined style="margin-right:8px; color: #1890ff;" />
-              <span>验收管理中心</span>
+              <span>管理中心</span>
               <span class="item-count">({{ counts.acceptance }})</span>
             </span>
           </a-menu-item>
-          <a-menu-item key="acceptance-project-archive">
-            <span style="display: flex; align-items: center; width: 100%;">
-              <DatabaseOutlined style="margin-right:8px; color: #1890ff;" />
-              <span>项目历史档案</span>
-            </span>
-          </a-menu-item>
-          <a-menu-item key="acceptance-material-review">
-            <span style="display: flex; align-items: center; width: 100%;">
-              <FileSearchOutlined style="margin-right:8px; color: #1890ff;" />
-              <span>材料审核管理</span>
-            </span>
-          </a-menu-item>
+
+
           <a-menu-item key="acceptance-meeting-conclusion">
             <span style="display: flex; align-items: center; width: 100%;">
               <ScheduleOutlined style="margin-right:8px; color: #1890ff;" />
-              <span>会议结论管理</span>
+              <span>会议管理</span>
+            </span>
+          </a-menu-item>
+        </a-sub-menu>
+        
+        <!-- 历史档案 (与项目调研、立项、实施、验收同级) -->
+        <a-sub-menu key="project-archive" data-menu-id="project-archive">
+          <template #title>
+            <span style="display: flex; align-items: center; width: 100%;">
+              <DatabaseOutlined style="margin-right:8px;" />
+              <span>历史档案</span>
+            </span>
+          </template>
+          <a-menu-item key="project-archive-list">
+            <span style="display: flex; align-items: center; width: 100%;">
+              <FileTextOutlined style="margin-right:8px;" />
+              <span>档案查看</span>
             </span>
           </a-menu-item>
         </a-sub-menu>
@@ -380,8 +386,8 @@ const selectedKey = computed(() => {
   return key ? [key] : ['dashboard']
 })
 
-// 默认展开的菜单 (v3.0增加project-acceptance)
-const openKeys = ref(['project', 'research', 'approval', 'implementation', 'project-acceptance', 'maintenance'])
+// 默认展开的菜单 (v3.0增加project-acceptance和project-archive)
+const openKeys = ref(['project', 'research', 'approval', 'implementation', 'project-acceptance', 'project-archive', 'maintenance'])
 
 // 数据统计 (实际项目中从API获取) - v3.0版本
 const counts = ref({
@@ -408,6 +414,7 @@ const unreadCount = ref({
 const hasUrgentResearch = computed(() => true) // 有紧急调研任务
 const hasUrgentApproval = computed(() => true) // 有紧急审批
 const hasUrgentImplementation = computed(() => true) // 有紧急实施任务
+const hasUrgentAcceptance = computed(() => true) // 有紧急验收任务
 const hasUrgentNodes = computed(() => true) // 有紧急节点
 
 // 抽屉相关状态
@@ -473,9 +480,10 @@ function onMenuClick({ key }) {
     'acceptance-progress-query': '/acceptance/progress/query',
     // 管理角色
     'acceptance-management-center': '/acceptance/management/center',
-    'acceptance-project-archive': '/acceptance/project/archive',
-    'acceptance-material-review': '/acceptance/material/review',
     'acceptance-meeting-conclusion': '/acceptance/meeting/conclusion',
+    
+    // 项目管理路由
+    'project-archive-list': '/project/archive',
     
     // 统计分析路由
     'analysis': '/analytics',
@@ -671,6 +679,15 @@ function navigateToPage(type) {
   align-items: center;
   justify-content: space-between;
   width: 100%;
+}
+
+/* 项目管理子菜单缩进 - 针对项目管理下的所有子菜单 */
+.main-sider :deep(.ant-menu-submenu[data-menu-id="project-research"] > .ant-menu-submenu-title),
+.main-sider :deep(.ant-menu-submenu[data-menu-id="project-approval"] > .ant-menu-submenu-title),
+.main-sider :deep(.ant-menu-submenu[data-menu-id="project-implementation"] > .ant-menu-submenu-title),
+.main-sider :deep(.ant-menu-submenu[data-menu-id="project-acceptance"] > .ant-menu-submenu-title),
+.main-sider :deep(.ant-menu-submenu[data-menu-id="project-archive"] > .ant-menu-submenu-title) {
+  padding-left: 36px !important;
 }
 
 /* 展开/收起状态过渡 */

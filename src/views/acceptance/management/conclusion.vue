@@ -181,11 +181,8 @@
                     <CalendarOutlined />
                     安排会议
                   </a-button>
-                  <a-button @click="viewMaterials(item)">
+                  <a-button @click="viewProjectDetail(item)">
                     <FileTextOutlined />
-                    查看材料
-                  </a-button>
-                  <a-button type="link" @click="viewProjectDetail(item)">
                     查看详情
                   </a-button>
                 </a-space>
@@ -225,12 +222,45 @@
                       {{ getMeetingTypeText(item.meetingType) }}
                     </a-descriptions-item>
                     <a-descriptions-item label="主持人">
-                      {{ item.meetingHost }}
+                      <span v-if="item.meetingHosts && item.meetingHosts.length > 0">
+                        <a-tag 
+                          v-for="host in item.meetingHosts" 
+                          :key="host" 
+                          color="blue" 
+                          style="margin-right: 4px;"
+                        >
+                          {{ host }}
+                        </a-tag>
+                      </span>
+                      <span v-else>{{ item.meetingHost }}</span>
                     </a-descriptions-item>
                     <a-descriptions-item label="参会专家">
-                      {{ item.experts.join('、') }}
+                      <span v-if="item.experts && item.experts.length > 0">
+                        <a-tag 
+                          v-for="expert in item.experts" 
+                          :key="expert" 
+                          color="green" 
+                          style="margin-right: 4px;"
+                        >
+                          {{ expert }}
+                        </a-tag>
+                      </span>
                     </a-descriptions-item>
-                    <a-descriptions-item label="会议说明">
+                    <a-descriptions-item label="会议资料" v-if="item.meetingMaterials && item.meetingMaterials.length > 0">
+                      <div class="meeting-materials-display">
+                        <a-tag 
+                          v-for="(material, index) in item.meetingMaterials" 
+                          :key="index"
+                          color="orange"
+                          style="margin: 2px 4px 2px 0; cursor: pointer;"
+                          @click="downloadMaterial(material)"
+                        >
+                          <FileOutlined style="margin-right: 4px;" />
+                          {{ material.name }}
+                        </a-tag>
+                      </div>
+                    </a-descriptions-item>
+                    <a-descriptions-item label="会议说明" :span="item.meetingMaterials && item.meetingMaterials.length > 0 ? 1 : 2">
                       {{ item.meetingDescription }}
                     </a-descriptions-item>
                   </a-descriptions>
@@ -255,12 +285,31 @@
                     <EditOutlined />
                     录入结论
                   </a-button>
-                  <a-button @click="editMeeting(item)">
+                  <a-button 
+                    v-if="item.meetingStatus === 'scheduled'"
+                    type="default"
+                    @click="sendNotification(item)"
+                    :loading="item.notifyLoading"
+                  >
+                    <MessageOutlined />
+                    一键通知
+                  </a-button>
+                  <a-button 
+                    :disabled="item.meetingStatus !== 'scheduled'"
+                    @click="editMeeting(item)"
+                  >
                     <EditOutlined />
                     编辑会议
                   </a-button>
                   <a-button type="link" @click="viewMeetingDetail(item)">
                     查看详情
+                  </a-button>
+                  <a-button 
+                    type="link" 
+                    danger 
+                    @click="deleteMeeting(item)"
+                  >
+                    删除
                   </a-button>
                 </a-space>
               </div>
@@ -311,15 +360,21 @@
                     <div class="section-content">{{ item.requirements }}</div>
                   </div>
 
-                  <div class="conclusion-section">
-                    <div class="section-title">专家意见</div>
+                  <!-- 结论相关文件展示 -->
+                  <div v-if="item.conclusionFiles && item.conclusionFiles.length > 0" class="conclusion-section">
+                    <div class="section-title">结论相关文件</div>
                     <div class="section-content">
-                      <div v-for="opinion in item.expertOpinions" :key="opinion.id" class="expert-opinion">
-                        <div class="opinion-header">
-                          <span class="expert-name">{{ opinion.expert }}</span>
-                          <span class="opinion-score">评分：{{ opinion.score }}分</span>
-                        </div>
-                        <div class="opinion-content">{{ opinion.content }}</div>
+                      <div class="conclusion-files-display">
+                        <a-tag 
+                          v-for="(file, index) in item.conclusionFiles" 
+                          :key="index"
+                          color="purple"
+                          style="margin: 2px 4px 2px 0; cursor: pointer;"
+                          @click="downloadConclusionFile(file)"
+                        >
+                          <FileOutlined style="margin-right: 4px;" />
+                          {{ file.name }}
+                        </a-tag>
                       </div>
                     </div>
                   </div>
@@ -388,32 +443,228 @@
 
           <a-form-item label="会议主持人" required>
             <a-select
-              v-model:value="scheduleForm.host"
-              placeholder="选择主持人"
+              v-model:value="scheduleForm.hosts"
+              mode="tags"
+              placeholder="选择或输入主持人（可选择多个或手动输入）"
               style="width: 100%"
+              :options="hostOptions"
+              :filter-option="filterHostOption"
             >
-              <a-select-option v-for="host in hostList" :key="host.id" :value="host.id">
-                {{ host.name }} - {{ host.title }}
-              </a-select-option>
+              <template #tagRender="{ label, onClose }">
+                <a-tag 
+                  color="blue" 
+                  closable 
+                  @close="onClose"
+                  style="margin-right: 4px; margin-bottom: 4px;"
+                >
+                  {{ label }}
+                </a-tag>
+              </template>
             </a-select>
+            <div class="form-tip">可从下拉列表选择或直接输入姓名，支持多个主持人</div>
           </a-form-item>
 
           <a-form-item label="参会专家" required>
             <a-select
               v-model:value="scheduleForm.experts"
-              mode="multiple"
-              placeholder="选择参会专家"
+              mode="tags"
+              placeholder="选择或输入参会专家（可选择多个或手动输入）"
               style="width: 100%"
+              :options="expertOptions"
+              :filter-option="filterExpertOption"
             >
-              <a-select-option v-for="expert in expertList" :key="expert.id" :value="expert.id">
-                {{ expert.name }} - {{ expert.title }}
-              </a-select-option>
+              <template #tagRender="{ label, onClose }">
+                <a-tag 
+                  color="green" 
+                  closable 
+                  @close="onClose"
+                  style="margin-right: 4px; margin-bottom: 4px;"
+                >
+                  {{ label }}
+                </a-tag>
+              </template>
             </a-select>
+            <div class="form-tip">可从下拉列表选择或直接输入专家姓名，支持多个专家</div>
+          </a-form-item>
+
+          <a-form-item label="会议资料">
+            <div class="meeting-materials">
+              <a-upload
+                v-model:file-list="scheduleForm.materials"
+                :before-upload="beforeUploadMaterial"
+                :on-remove="removeMaterial"
+                multiple
+                accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.zip,.rar"
+              >
+                <a-button>
+                  <UploadOutlined />
+                  上传会议资料
+                </a-button>
+              </a-upload>
+              <div class="upload-tip">
+                支持上传PDF、Word、PPT、Excel、压缩包等格式，单个文件不超过50MB
+              </div>
+              
+              <!-- 资料列表展示 -->
+              <div v-if="scheduleForm.materials.length > 0" class="materials-list">
+                <div 
+                  v-for="(file, index) in scheduleForm.materials" 
+                  :key="index"
+                  class="material-item"
+                >
+                  <FileOutlined class="file-icon" />
+                  <span class="file-name">{{ file.name }}</span>
+                  <span class="file-size">{{ formatFileSize(file.size) }}</span>
+                  <a-button 
+                    type="link" 
+                    danger 
+                    size="small"
+                    @click="removeMaterialByIndex(index)"
+                  >
+                    删除
+                  </a-button>
+                </div>
+              </div>
+            </div>
           </a-form-item>
 
           <a-form-item label="会议说明">
             <a-textarea
               v-model:value="scheduleForm.description"
+              placeholder="请填写会议说明..."
+              :rows="3"
+              show-count
+              :maxlength="200"
+            />
+          </a-form-item>
+        </a-form>
+      </div>
+    </a-modal>
+
+    <!-- 编辑会议弹窗 -->
+    <a-modal
+      v-model:open="editModalVisible"
+      title="编辑会议安排"
+      width="700px"
+      @ok="handleEditSubmit"
+      @cancel="handleEditCancel"
+    >
+      <div v-if="selectedEditMeeting" class="edit-modal">
+        <a-form :model="editForm" layout="vertical">
+          <a-row :gutter="24">
+            <a-col :span="12">
+              <a-form-item label="会议时间" required>
+                <a-date-picker
+                  v-model:value="editForm.datetime"
+                  show-time
+                  placeholder="选择会议时间"
+                  style="width: 100%"
+                />
+              </a-form-item>
+            </a-col>
+            <a-col :span="12">
+              <a-form-item label="会议地点" required>
+                <a-input
+                  v-model:value="editForm.location"
+                  placeholder="请输入会议地点"
+                />
+              </a-form-item>
+            </a-col>
+          </a-row>
+          
+          <a-form-item label="会议形式" required>
+            <a-radio-group v-model:value="editForm.type">
+              <a-radio value="offline">现场会议</a-radio>
+              <a-radio value="online">线上会议</a-radio>
+              <a-radio value="hybrid">混合会议</a-radio>
+            </a-radio-group>
+          </a-form-item>
+
+          <a-form-item label="会议主持人" required>
+            <a-select
+              v-model:value="editForm.hosts"
+              mode="tags"
+              placeholder="选择或输入主持人（可选择多个或手动输入）"
+              style="width: 100%"
+              :options="hostOptions"
+              :filter-option="filterHostOption"
+            >
+              <template #tagRender="{ label, onClose }">
+                <a-tag 
+                  color="blue" 
+                  closable 
+                  @close="onClose"
+                  style="margin-right: 4px; margin-bottom: 4px;"
+                >
+                  {{ label }}
+                </a-tag>
+              </template>
+            </a-select>
+          </a-form-item>
+
+          <a-form-item label="参会专家" required>
+            <a-select
+              v-model:value="editForm.experts"
+              mode="tags"
+              placeholder="选择或输入参会专家（可选择多个或手动输入）"
+              style="width: 100%"
+              :options="expertOptions"
+              :filter-option="filterExpertOption"
+            >
+              <template #tagRender="{ label, onClose }">
+                <a-tag 
+                  color="green" 
+                  closable 
+                  @close="onClose"
+                  style="margin-right: 4px; margin-bottom: 4px;"
+                >
+                  {{ label }}
+                </a-tag>
+              </template>
+            </a-select>
+          </a-form-item>
+
+          <a-form-item label="会议资料">
+            <div class="meeting-materials">
+              <a-upload
+                v-model:file-list="editForm.materials"
+                :before-upload="beforeUploadEditMaterial"
+                :on-remove="removeEditMaterial"
+                multiple
+                accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.zip,.rar"
+              >
+                <a-button>
+                  <UploadOutlined />
+                  上传会议资料
+                </a-button>
+              </a-upload>
+              
+              <!-- 资料列表展示 -->
+              <div v-if="editForm.materials.length > 0" class="materials-list">
+                <div 
+                  v-for="(file, index) in editForm.materials" 
+                  :key="index"
+                  class="material-item"
+                >
+                  <FileOutlined class="file-icon" />
+                  <span class="file-name">{{ file.name }}</span>
+                  <span class="file-size">{{ formatFileSize(file.size) }}</span>
+                  <a-button 
+                    type="link" 
+                    danger 
+                    size="small"
+                    @click="removeEditMaterialByIndex(index)"
+                  >
+                    删除
+                  </a-button>
+                </div>
+              </div>
+            </div>
+          </a-form-item>
+
+          <a-form-item label="会议说明">
+            <a-textarea
+              v-model:value="editForm.description"
               placeholder="请填写会议说明..."
               :rows="3"
               show-count
@@ -433,7 +684,7 @@
       @cancel="handleConclusionCancel"
     >
       <div v-if="selectedMeeting" class="conclusion-modal">
-        <div class="meeting-info">
+        <div class="project-meeting-info">
           <h4>会议信息</h4>
           <a-descriptions :column="2" bordered size="small">
             <a-descriptions-item label="项目名称" :span="2">
@@ -444,6 +695,12 @@
             </a-descriptions-item>
             <a-descriptions-item label="会议地点">
               {{ selectedMeeting.meetingLocation }}
+            </a-descriptions-item>
+            <a-descriptions-item label="会议形式" v-if="selectedMeeting.meetingType">
+              {{ selectedMeeting.meetingType === 'offline' ? '现场会议' : selectedMeeting.meetingType === 'online' ? '线上会议' : '混合会议' }}
+            </a-descriptions-item>
+            <a-descriptions-item label="会议说明" :span="2" v-if="selectedMeeting.meetingDescription">
+              {{ selectedMeeting.meetingDescription }}
             </a-descriptions-item>
           </a-descriptions>
         </div>
@@ -457,7 +714,7 @@
             </a-radio-group>
           </a-form-item>
 
-          <a-form-item label="验收评分" required>
+          <a-form-item label="验收评分">
             <a-input-number
               v-model:value="conclusionForm.score"
               :min="0"
@@ -488,57 +745,308 @@
             />
           </a-form-item>
 
-          <a-form-item label="专家意见">
-            <div class="expert-opinions">
-              <div
-                v-for="(opinion, index) in conclusionForm.expertOpinions"
-                :key="index"
-                class="opinion-item"
+          <a-form-item label="结论相关文件">
+            <div class="conclusion-files">
+              <a-upload
+                v-model:file-list="conclusionForm.conclusionFiles"
+                :before-upload="beforeUploadConclusionFile"
+                :on-remove="removeConclusionFile"
+                multiple
+                accept=".pdf,.doc,.docx,.xls,.xlsx"
               >
-                <a-row :gutter="16">
-                  <a-col :span="8">
-                    <a-input
-                      v-model:value="opinion.expert"
-                      placeholder="专家姓名"
-                    />
-                  </a-col>
-                  <a-col :span="4">
-                    <a-input-number
-                      v-model:value="opinion.score"
-                      :min="0"
-                      :max="100"
-                      placeholder="评分"
-                    />
-                  </a-col>
-                  <a-col :span="10">
-                    <a-textarea
-                      v-model:value="opinion.content"
-                      placeholder="专家意见"
-                      :rows="2"
-                    />
-                  </a-col>
-                  <a-col :span="2">
-                    <a-button
-                      type="link"
-                      danger
-                      @click="removeExpertOpinion(index)"
-                    >
-                      删除
-                    </a-button>
-                  </a-col>
-                </a-row>
+                <a-button>
+                  <UploadOutlined />
+                  上传结论文件
+                </a-button>
+              </a-upload>
+              
+              <!-- 文件列表展示 -->
+              <div v-if="conclusionForm.conclusionFiles.length > 0" class="files-list">
+                <div 
+                  v-for="(file, index) in conclusionForm.conclusionFiles" 
+                  :key="index"
+                  class="file-item"
+                >
+                  <FileOutlined class="file-icon" />
+                  <span class="file-name">{{ file.name }}</span>
+                  <span class="file-size">{{ formatFileSize(file.size) }}</span>
+                  <a-button 
+                    type="link" 
+                    danger 
+                    size="small"
+                    @click="removeConclusionFileByIndex(index)"
+                  >
+                    删除
+                  </a-button>
+                </div>
               </div>
-              <a-button
-                type="dashed"
-                @click="addExpertOpinion"
-                style="width: 100%; margin-top: 8px"
-              >
-                <PlusOutlined />
-                添加专家意见
-              </a-button>
+              <div class="upload-tip">
+                <small style="color: #999;">
+                  支持上传 PDF、Word、Excel 文件，单个文件大小不超过 20MB
+                </small>
+              </div>
             </div>
           </a-form-item>
         </a-form>
+      </div>
+    </a-modal>
+
+    <!-- 项目详情弹窗 -->
+    <a-modal
+      v-model:open="detailModalVisible"
+      title="项目详情"
+      width="800px"
+      :footer="null"
+      @cancel="handleDetailCancel"
+    >
+      <div v-if="selectedProject" class="detail-modal">
+        <!-- 项目基本信息 -->
+        <div class="detail-section">
+          <h4>项目基本信息</h4>
+          <a-descriptions :column="2" bordered size="small">
+            <a-descriptions-item label="项目名称" :span="2">
+              {{ selectedProject.projectName }}
+            </a-descriptions-item>
+            <a-descriptions-item label="项目编号">
+              {{ selectedProject.projectCode }}
+            </a-descriptions-item>
+            <a-descriptions-item label="项目负责人">
+              {{ selectedProject.projectLeader }}
+            </a-descriptions-item>
+            <a-descriptions-item label="项目周期">
+              {{ selectedProject.projectDuration }}
+            </a-descriptions-item>
+            <a-descriptions-item label="项目预算">
+              {{ selectedProject.projectBudget }}万元
+            </a-descriptions-item>
+            <a-descriptions-item label="提交时间">
+              {{ selectedProject.submitTime }}
+            </a-descriptions-item>
+            <a-descriptions-item label="材料状态">
+              <a-tag :color="selectedProject.materialStatus === 'approved' ? 'green' : 'orange'">
+                {{ getMaterialStatusText(selectedProject.materialStatus) }}
+              </a-tag>
+            </a-descriptions-item>
+          </a-descriptions>
+        </div>
+
+        <!-- 材料审核情况 -->
+        <div class="detail-section">
+          <h4>材料审核情况</h4>
+          <div class="material-summary">
+            <a-row :gutter="16">
+              <a-col :span="12">
+                <a-statistic 
+                  title="必需材料通过" 
+                  :value="selectedProject.requiredMaterials" 
+                  :suffix="`/ ${selectedProject.totalRequired}`"
+                  :value-style="{ color: '#52c41a' }"
+                />
+              </a-col>
+              <a-col :span="12">
+                <a-statistic 
+                  title="可选材料提交" 
+                  :value="selectedProject.optionalMaterials" 
+                  suffix="项"
+                  :value-style="{ color: '#1890ff' }"
+                />
+              </a-col>
+            </a-row>
+          </div>
+        </div>
+
+        <!-- 模拟验收材料列表 -->
+        <div class="detail-section">
+          <h4>验收材料</h4>
+          <div class="material-list">
+            <div class="material-item-detail">
+              <div class="material-info">
+                <div class="material-name">
+                  <FileOutlined />
+                  项目总结报告.pdf
+                </div>
+                <div class="material-meta">
+                  <span class="material-type">必需材料</span>
+                  <a-tag color="green" size="small">已通过</a-tag>
+                </div>
+              </div>
+              <div class="material-actions">
+                <a-button type="link" size="small">预览</a-button>
+                <a-button type="link" size="small">下载</a-button>
+              </div>
+            </div>
+            <div class="material-item-detail">
+              <div class="material-info">
+                <div class="material-name">
+                  <FileOutlined />
+                  技术文档.docx
+                </div>
+                <div class="material-meta">
+                  <span class="material-type">必需材料</span>
+                  <a-tag color="green" size="small">已通过</a-tag>
+                </div>
+              </div>
+              <div class="material-actions">
+                <a-button type="link" size="small">预览</a-button>
+                <a-button type="link" size="small">下载</a-button>
+              </div>
+            </div>
+            <div class="material-item-detail">
+              <div class="material-info">
+                <div class="material-name">
+                  <FileOutlined />
+                  演示视频.mp4
+                </div>
+                <div class="material-meta">
+                  <span class="material-type">可选材料</span>
+                  <a-tag color="blue" size="small">已提交</a-tag>
+                </div>
+              </div>
+              <div class="material-actions">
+                <a-button type="link" size="small">预览</a-button>
+                <a-button type="link" size="small">下载</a-button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </a-modal>
+
+    <!-- 短信通知弹窗 -->
+    <a-modal
+      v-model:open="notifyModalVisible"
+      title="发送会议通知"
+      width="600px"
+      @ok="handleSendNotification"
+      @cancel="handleNotifyCancel"
+      :confirm-loading="sendingNotification"
+    >
+      <div v-if="selectedMeetingForNotify" class="notify-modal">
+        <div class="meeting-summary">
+          <h4>会议信息</h4>
+          <a-descriptions :column="1" size="small" bordered>
+            <a-descriptions-item label="项目名称">{{ selectedMeetingForNotify.projectName }}</a-descriptions-item>
+            <a-descriptions-item label="会议时间">{{ selectedMeetingForNotify.meetingTime }}</a-descriptions-item>
+            <a-descriptions-item label="会议地点">{{ selectedMeetingForNotify.meetingLocation }}</a-descriptions-item>
+            <a-descriptions-item label="会议形式">
+              <a-tag :color="getMeetingTypeColor(selectedMeetingForNotify.meetingType)">
+                {{ getMeetingTypeText(selectedMeetingForNotify.meetingType) }}
+              </a-tag>
+            </a-descriptions-item>
+          </a-descriptions>
+        </div>
+
+        <a-form :model="notifyForm" layout="vertical" style="margin-top: 20px;">
+          <a-form-item label="通知方式" required>
+            <a-checkbox-group v-model:value="notifyForm.methods">
+              <a-checkbox value="sms">短信通知</a-checkbox>
+              <a-checkbox value="email" disabled>邮件通知（暂未开放）</a-checkbox>
+              <a-checkbox value="wechat" disabled>微信通知（暂未开放）</a-checkbox>
+            </a-checkbox-group>
+          </a-form-item>
+
+          <a-form-item label="通知对象" required>
+            <div class="notify-targets">
+              <div class="target-group">
+                <div class="group-title">会议主持人</div>
+                <div class="target-list">
+                  <a-checkbox 
+                    v-for="host in selectedMeetingForNotify.meetingHosts" 
+                    :key="host"
+                    :value="host"
+                    v-model:checked="notifyForm.selectedHosts[host]"
+                    style="display: block; margin-bottom: 8px;"
+                  >
+                    {{ host }}
+                  </a-checkbox>
+                </div>
+              </div>
+              
+              <div class="target-group">
+                <div class="group-title">参会专家</div>
+                <div class="target-list">
+                  <a-checkbox 
+                    v-for="expert in selectedMeetingForNotify.experts" 
+                    :key="expert"
+                    :value="expert"
+                    v-model:checked="notifyForm.selectedExperts[expert]"
+                    style="display: block; margin-bottom: 8px;"
+                  >
+                    {{ expert }}
+                  </a-checkbox>
+                </div>
+              </div>
+            </div>
+            
+            <div class="select-all-actions" style="margin-top: 12px;">
+              <a-button size="small" @click="selectAllTargets">全选</a-button>
+              <a-button size="small" @click="clearAllTargets" style="margin-left: 8px;">清空</a-button>
+            </div>
+          </a-form-item>
+
+          <a-form-item label="通知内容">
+            <a-textarea
+              v-model:value="notifyForm.content"
+              :rows="4"
+              placeholder="系统将自动生成通知内容，您也可以自定义修改..."
+            />
+            <div class="content-tip">
+              系统会自动包含会议时间、地点等基本信息
+            </div>
+          </a-form-item>
+
+          <a-form-item label="提醒设置">
+            <div class="reminder-settings">
+              <div class="reminder-option">
+                <a-checkbox 
+                  v-model:checked="notifyForm.sendImmediately"
+                  style="margin-bottom: 12px;"
+                >
+                  立即发送
+                </a-checkbox>
+              </div>
+              
+              <div class="reminder-option">
+                <a-checkbox 
+                  v-model:checked="notifyForm.enableReminder"
+                  style="margin-bottom: 8px;"
+                >
+                  会议前提醒
+                </a-checkbox>
+                
+                <div v-if="notifyForm.enableReminder" class="reminder-time-setting">
+                  <a-input-number
+                    v-model:value="notifyForm.reminderValue"
+                    :min="1"
+                    :max="365"
+                    placeholder="输入数值"
+                    style="width: 120px; margin-right: 8px;"
+                  />
+                  <a-select
+                    v-model:value="notifyForm.reminderUnit"
+                    style="width: 80px;"
+                    placeholder="单位"
+                  >
+                    <a-select-option value="hours">小时</a-select-option>
+                    <a-select-option value="days">天</a-select-option>
+                  </a-select>
+                  <span style="margin-left: 8px; color: #8c8c8c; font-size: 12px;">
+                    提醒
+                  </span>
+                </div>
+              </div>
+            </div>
+          </a-form-item>
+        </a-form>
+
+        <div v-if="selectedMeetingForNotify.lastNotifyTime" class="last-notify-info">
+          <a-alert
+            type="info"
+            :message="`上次通知时间：${selectedMeetingForNotify.lastNotifyTime}`"
+            show-icon
+            style="margin-top: 16px;"
+          />
+        </div>
       </div>
     </a-modal>
   </div>
@@ -550,6 +1058,7 @@
  * 功能：会议安排、结论录入、流程管理、状态跟踪
  */
 import { ref, computed, onMounted } from 'vue'
+import dayjs from 'dayjs'
 import {
   ScheduleOutlined,
   CalendarOutlined,
@@ -560,9 +1069,12 @@ import {
   PlayCircleOutlined,
   EditOutlined,
   ExportOutlined,
-  PlusOutlined
+  PlusOutlined,
+  UploadOutlined,
+  FileOutlined,
+  MessageOutlined
 } from '@ant-design/icons-vue'
-import { message } from 'ant-design-vue'
+import { message, Modal } from 'ant-design-vue'
 
 // 统计数据
 const stats = ref({
@@ -608,10 +1120,14 @@ const scheduledMeetingList = ref([
     meetingTime: '2024-01-25 14:00',
     meetingLocation: '会议室A-201',
     meetingType: 'offline',
-    meetingHost: '李主任',
+    meetingHost: '李主任、王经理', // 兼容旧格式
+    meetingHosts: ['李主任 - 技术主任', '王经理 - 项目经理'], // 新格式
     meetingStatus: 'scheduled',
-    experts: ['张教授', '李博士', '王专家'],
-    meetingDescription: '项目验收会议，请准时参加'
+    experts: ['张教授 - 高级工程师', '李博士 - 技术专家', '王专家 - 项目管理专家'],
+    meetingMaterials: [], // 会议资料
+    meetingDescription: '项目验收会议，请准时参加',
+    notifyLoading: false, // 通知发送加载状态
+    lastNotifyTime: null // 最后通知时间
   }
 ])
 
@@ -627,18 +1143,18 @@ const conclusionList = ref([
     score: 88,
     conclusionDescription: '项目完成质量良好，各项指标达到预期要求，同意验收通过。',
     requirements: null,
-    expertOpinions: [
+    conclusionFiles: [
       {
         id: 1,
-        expert: '张教授',
-        score: 90,
-        content: '技术方案先进，实现效果良好。'
+        name: '验收结论报告.pdf',
+        size: 1024 * 1024 * 2, // 2MB
+        type: 'application/pdf'
       },
       {
         id: 2,
-        expert: '李博士',
-        score: 86,
-        content: '功能完整，用户体验佳。'
+        name: '验收评分表.xlsx',
+        size: 1024 * 512, // 512KB
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
       }
     ]
   }
@@ -661,17 +1177,34 @@ const expertList = ref([
 
 // 弹窗状态
 const scheduleModalVisible = ref(false)
+const editModalVisible = ref(false)
 const conclusionModalVisible = ref(false)
+const detailModalVisible = ref(false)
+const notifyModalVisible = ref(false)
 const selectedProject = ref(null)
 const selectedMeeting = ref(null)
+const selectedEditMeeting = ref(null)
+const selectedMeetingForNotify = ref(null)
+const sendingNotification = ref(false)
 
 // 表单数据
 const scheduleForm = ref({
   datetime: undefined,
   location: '',
   type: 'offline',
-  host: undefined,
-  experts: [],
+  hosts: [], // 改为数组，支持多个主持人
+  experts: [], // 支持手动输入的专家
+  materials: [], // 会议资料文件列表
+  description: ''
+})
+
+const editForm = ref({
+  datetime: undefined,
+  location: '',
+  type: 'offline',
+  hosts: [], 
+  experts: [], 
+  materials: [], 
   description: ''
 })
 
@@ -680,10 +1213,179 @@ const conclusionForm = ref({
   score: 85,
   description: '',
   requirements: '',
-  expertOpinions: [
-    { expert: '', score: 85, content: '' }
-  ]
+  conclusionFiles: [] // 结论相关文件
 })
+
+const notifyForm = ref({
+  methods: ['sms'], // 通知方式
+  selectedHosts: {}, // 选中的主持人
+  selectedExperts: {}, // 选中的专家
+  content: '', // 通知内容
+  sendImmediately: true, // 立即发送
+  enableReminder: false, // 启用提醒
+  reminderValue: 1, // 提醒数值
+  reminderUnit: 'hours' // 提醒单位（hours/days）
+})
+
+// 计算属性 - 转换为选项格式
+const hostOptions = computed(() => {
+  return hostList.value.map(host => ({
+    label: `${host.name} - ${host.title}`,
+    value: `${host.name} - ${host.title}`
+  }))
+})
+
+const expertOptions = computed(() => {
+  return expertList.value.map(expert => ({
+    label: `${expert.name} - ${expert.title}`,
+    value: `${expert.name} - ${expert.title}`
+  }))
+})
+
+// 过滤方法
+const filterHostOption = (input, option) => {
+  return option.label.toLowerCase().includes(input.toLowerCase())
+}
+
+const filterExpertOption = (input, option) => {
+  return option.label.toLowerCase().includes(input.toLowerCase())
+}
+
+// 文件上传相关方法
+const beforeUploadMaterial = (file) => {
+  // 检查文件大小（50MB限制）
+  const isLt50M = file.size / 1024 / 1024 < 50
+  if (!isLt50M) {
+    message.error('文件大小不能超过50MB!')
+    return false
+  }
+  
+  // 检查文件类型
+  const allowedTypes = [
+    'application/pdf',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/vnd.ms-powerpoint',
+    'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'application/zip',
+    'application/x-rar-compressed'
+  ]
+  
+  if (!allowedTypes.includes(file.type) && !file.name.match(/\.(pdf|doc|docx|ppt|pptx|xls|xlsx|zip|rar)$/i)) {
+    message.error('只支持PDF、Word、PPT、Excel、压缩包格式!')
+    return false
+  }
+  
+  // 将文件添加到材料列表
+  scheduleForm.value.materials.push(file)
+  message.success(`文件 ${file.name} 添加成功`)
+  
+  return false // 阻止自动上传
+}
+
+const removeMaterial = (file) => {
+  const index = scheduleForm.value.materials.findIndex(item => item.uid === file.uid)
+  if (index > -1) {
+    scheduleForm.value.materials.splice(index, 1)
+  }
+}
+
+const removeMaterialByIndex = (index) => {
+  scheduleForm.value.materials.splice(index, 1)
+  message.success('文件删除成功')
+}
+
+// 编辑会议的文件上传方法
+const beforeUploadEditMaterial = (file) => {
+  const isLt50M = file.size / 1024 / 1024 < 50
+  if (!isLt50M) {
+    message.error('文件大小不能超过50MB!')
+    return false
+  }
+  
+  const allowedTypes = [
+    'application/pdf',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/vnd.ms-powerpoint',
+    'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'application/zip',
+    'application/x-rar-compressed'
+  ]
+  
+  if (!allowedTypes.includes(file.type) && !file.name.match(/\.(pdf|doc|docx|ppt|pptx|xls|xlsx|zip|rar)$/i)) {
+    message.error('只支持PDF、Word、PPT、Excel、压缩包格式!')
+    return false
+  }
+  
+  editForm.value.materials.push(file)
+  message.success(`文件 ${file.name} 添加成功`)
+  
+  return false
+}
+
+const removeEditMaterial = (file) => {
+  const index = editForm.value.materials.findIndex(item => item.uid === file.uid)
+  if (index > -1) {
+    editForm.value.materials.splice(index, 1)
+  }
+}
+
+const removeEditMaterialByIndex = (index) => {
+  editForm.value.materials.splice(index, 1)
+  message.success('文件删除成功')
+}
+
+// 结论文件上传方法
+const beforeUploadConclusionFile = (file) => {
+  const isLt20M = file.size / 1024 / 1024 < 20
+  if (!isLt20M) {
+    message.error('文件大小不能超过20MB!')
+    return false
+  }
+  
+  const allowedTypes = [
+    'application/pdf',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+  ]
+  
+  if (!allowedTypes.includes(file.type) && !file.name.match(/\.(pdf|doc|docx|xls|xlsx)$/i)) {
+    message.error('只支持PDF、Word、Excel格式!')
+    return false
+  }
+  
+  conclusionForm.value.conclusionFiles.push(file)
+  message.success(`文件 ${file.name} 添加成功`)
+  
+  return false
+}
+
+const removeConclusionFile = (file) => {
+  const index = conclusionForm.value.conclusionFiles.findIndex(item => item.uid === file.uid)
+  if (index > -1) {
+    conclusionForm.value.conclusionFiles.splice(index, 1)
+  }
+}
+
+const removeConclusionFileByIndex = (index) => {
+  conclusionForm.value.conclusionFiles.splice(index, 1)
+  message.success('文件删除成功')
+}
+
+const formatFileSize = (bytes) => {
+  if (bytes === 0) return '0 B'
+  const k = 1024
+  const sizes = ['B', 'KB', 'MB', 'GB']
+  const i = Math.floor(Math.log(bytes) / Math.log(k))
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
+}
 
 // 状态相关方法
 const getMaterialStatusText = (status) => {
@@ -722,6 +1424,15 @@ const getMeetingTypeText = (type) => {
   return textMap[type] || '未知'
 }
 
+const getMeetingTypeColor = (type) => {
+  const colorMap = {
+    offline: 'blue',
+    online: 'green',
+    hybrid: 'orange'
+  }
+  return colorMap[type] || 'default'
+}
+
 const getConclusionColor = (conclusion) => {
   const colorMap = {
     passed: 'green',
@@ -742,7 +1453,15 @@ const getConclusionText = (conclusion) => {
 
 // 事件处理方法
 const scheduleBatchMeeting = () => {
-  message.info('批量安排会议功能')
+  if (pendingScheduleList.value.length === 0) {
+    message.warning('暂无待安排会议的项目')
+    return
+  }
+  
+  message.info(`开始批量安排会议，共 ${pendingScheduleList.value.length} 个项目`)
+  
+  // 实际项目中可以打开批量安排弹窗
+  // batchScheduleModalVisible.value = true
 }
 
 const handleFilter = () => {
@@ -767,8 +1486,9 @@ const scheduleMeeting = (item) => {
     datetime: undefined,
     location: '',
     type: 'offline',
-    host: undefined,
-    experts: [],
+    hosts: [], // 重置为空数组
+    experts: [], // 重置为空数组
+    materials: [], // 重置为空数组
     description: ''
   }
   scheduleModalVisible.value = true
@@ -779,12 +1499,60 @@ const viewMaterials = (item) => {
 }
 
 const viewProjectDetail = (item) => {
-  message.info(`查看详情：${item.projectName}`)
+  // 显示项目详情，包括验收材料的预览和下载
+  selectedProject.value = item
+  detailModalVisible.value = true
 }
 
 const startMeeting = (item) => {
   item.meetingStatus = 'in_progress'
   message.success(`开始会议：${item.projectName}`)
+}
+
+const editMeeting = (item) => {
+  selectedEditMeeting.value = item
+  editForm.value = {
+    datetime: item.meetingTime ? dayjs(item.meetingTime) : undefined,
+    location: item.meetingLocation || '',
+    type: item.meetingType || 'offline',
+    hosts: item.meetingHosts || (item.meetingHost ? [item.meetingHost] : []),
+    experts: item.experts || [],
+    materials: item.meetingMaterials || [],
+    description: item.meetingDescription || ''
+  }
+  editModalVisible.value = true
+}
+
+const deleteMeeting = (item) => {
+  // 显示确认删除对话框
+  const modal = Modal.confirm({
+    title: '确认删除',
+    content: `确定要删除项目"${item.projectName}"的会议安排吗？`,
+    okText: '确定',
+    cancelText: '取消',
+    onOk() {
+      // 从已安排会议列表中删除
+      const index = scheduledMeetingList.value.findIndex(meeting => meeting.id === item.id)
+      if (index > -1) {
+        scheduledMeetingList.value.splice(index, 1)
+        // 将项目重新添加到待安排会议列表
+        pendingScheduleList.value.push({
+          id: item.id,
+          projectName: item.projectName,
+          projectCode: item.projectCode,
+          projectLeader: '张三', // 这里应该从原始数据获取
+          projectDuration: '12个月',
+          projectBudget: 500,
+          materialStatus: 'approved',
+          submitTime: '2024-01-15',
+          requiredMaterials: 4,
+          totalRequired: 4,
+          optionalMaterials: 2
+        })
+        message.success('会议删除成功')
+      }
+    }
+  })
 }
 
 const inputConclusion = (item) => {
@@ -794,35 +1562,259 @@ const inputConclusion = (item) => {
     score: 85,
     description: '',
     requirements: '',
-    expertOpinions: [
-      { expert: '', score: 85, content: '' }
-    ]
+    conclusionFiles: []
   }
   conclusionModalVisible.value = true
 }
 
-const editMeeting = (item) => {
-  message.info(`编辑会议：${item.projectName}`)
-}
+// 删除重复的editMeeting方法
 
 const viewMeetingDetail = (item) => {
-  message.info(`查看会议详情：${item.projectName}`)
+  // 显示会议详情，包括会议信息、参会人员、会议资料等
+  selectedMeeting.value = item
+  
+  // 这里应该打开会议详情弹窗
+  message.success(`正在查看会议详情：${item.projectName}`)
+  
+  // 实际项目中可以这样实现：
+  // meetingDetailModalVisible.value = true
 }
 
 const editConclusion = (item) => {
-  message.info(`编辑结论：${item.projectName}`)
+  // 编辑已录入的结论
+  selectedMeeting.value = item
+  conclusionForm.value = {
+    conclusion: item.conclusion || 'passed',
+    score: item.score || 85,
+    description: item.conclusionDescription || '',
+    requirements: item.requirements || '',
+    conclusionFiles: item.conclusionFiles || []
+  }
+  conclusionModalVisible.value = true
 }
 
 const exportConclusion = (item) => {
-  message.success(`导出结论：${item.projectName}`)
+  // 导出验收结论文档
+  message.success(`正在导出验收结论：${item.projectName}`)
+  
+  // 实际项目中这里应该调用导出接口
+  // exportAPI.exportConclusion(item.id)
 }
 
 const viewConclusionDetail = (item) => {
-  message.info(`查看结论详情：${item.projectName}`)
+  // 查看结论详情
+  selectedMeeting.value = item
+  message.success(`正在查看结论详情：${item.projectName}`)
+  
+  // 实际项目中可以打开详情弹窗
+  // conclusionDetailModalVisible.value = true
 }
+
+// 会议资料下载方法
+const downloadMaterial = (material) => {
+  // 实际项目中这里应该调用下载接口
+  message.success(`下载会议资料：${material.name}`)
+  
+  // 模拟下载（实际应该是从服务器下载）
+  const url = URL.createObjectURL(material)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = material.name
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+  URL.revokeObjectURL(url)
+}
+
+// 结论文件下载方法
+const downloadConclusionFile = (file) => {
+  message.success(`下载结论文件：${file.name}`)
+  
+  // 实际项目中这里应该调用下载接口
+  // downloadAPI.downloadConclusionFile(file.id)
+}
+
+// 一键通知方法
+const sendNotification = (meeting) => {
+  selectedMeetingForNotify.value = meeting
+  
+  // 初始化通知表单
+  resetNotifyForm()
+  
+  // 生成默认通知内容
+  generateDefaultNotifyContent()
+  
+  notifyModalVisible.value = true
+}
+
+// 重置通知表单
+const resetNotifyForm = () => {
+  notifyForm.value = {
+    methods: ['sms'],
+    selectedHosts: {},
+    selectedExperts: {},
+    content: '',
+    sendImmediately: true,
+    enableReminder: false,
+    reminderValue: 1,
+    reminderUnit: 'hours'
+  }
+  
+  // 默认选中所有参会人员
+  if (selectedMeetingForNotify.value) {
+    // 选中所有主持人
+    selectedMeetingForNotify.value.meetingHosts.forEach(host => {
+      notifyForm.value.selectedHosts[host] = true
+    })
+    
+    // 选中所有专家
+    selectedMeetingForNotify.value.experts.forEach(expert => {
+      notifyForm.value.selectedExperts[expert] = true
+    })
+  }
+}
+
+// 生成默认通知内容
+const generateDefaultNotifyContent = () => {
+  if (!selectedMeetingForNotify.value) return
+  
+  const meeting = selectedMeetingForNotify.value
+  const typeText = getMeetingTypeText(meeting.meetingType)
+  
+  notifyForm.value.content = `【会议通知】
+项目：${meeting.projectName}（${meeting.projectCode}）
+时间：${meeting.meetingTime}
+地点：${meeting.meetingLocation}
+形式：${typeText}
+说明：${meeting.meetingDescription || '请准时参加'}
+
+如有疑问，请及时联系会议组织方。`
+}
+
+// 全选通知对象
+const selectAllTargets = () => {
+  if (selectedMeetingForNotify.value) {
+    // 选中所有主持人
+    selectedMeetingForNotify.value.meetingHosts.forEach(host => {
+      notifyForm.value.selectedHosts[host] = true
+    })
+    
+    // 选中所有专家
+    selectedMeetingForNotify.value.experts.forEach(expert => {
+      notifyForm.value.selectedExperts[expert] = true
+    })
+  }
+}
+
+// 清空通知对象
+const clearAllTargets = () => {
+  notifyForm.value.selectedHosts = {}
+  notifyForm.value.selectedExperts = {}
+}
+
+// 发送通知
+const handleSendNotification = async () => {
+  // 验证通知方式
+  if (!notifyForm.value.methods || notifyForm.value.methods.length === 0) {
+    message.error('请选择通知方式')
+    return
+  }
+  
+  // 验证通知对象
+  const selectedHosts = Object.keys(notifyForm.value.selectedHosts).filter(key => notifyForm.value.selectedHosts[key])
+  const selectedExperts = Object.keys(notifyForm.value.selectedExperts).filter(key => notifyForm.value.selectedExperts[key])
+  
+  if (selectedHosts.length === 0 && selectedExperts.length === 0) {
+    message.error('请选择至少一个通知对象')
+    return
+  }
+  
+  // 验证通知内容
+  if (!notifyForm.value.content.trim()) {
+    message.error('请填写通知内容')
+    return
+  }
+  
+  // 验证提醒设置
+  if (!notifyForm.value.sendImmediately && !notifyForm.value.enableReminder) {
+    message.error('请至少选择一种发送方式')
+    return
+  }
+  
+  if (notifyForm.value.enableReminder) {
+    if (!notifyForm.value.reminderValue || notifyForm.value.reminderValue < 1) {
+      message.error('请输入有效的提醒时间')
+      return
+    }
+    if (!notifyForm.value.reminderUnit) {
+      message.error('请选择提醒时间单位')
+      return
+    }
+  }
+  
+  sendingNotification.value = true
+  
+  try {
+    // 模拟发送短信API调用
+    await new Promise(resolve => setTimeout(resolve, 2000))
+    
+    // 更新最后通知时间
+    if (selectedMeetingForNotify.value) {
+      selectedMeetingForNotify.value.lastNotifyTime = dayjs().format('YYYY-MM-DD HH:mm:ss')
+    }
+    
+    const totalRecipients = selectedHosts.length + selectedExperts.length
+    let successMessage = `短信通知设置成功！已向${totalRecipients}位参会人员`
+    
+    if (notifyForm.value.sendImmediately) {
+      successMessage += '发送通知'
+    }
+    
+    if (notifyForm.value.enableReminder) {
+      const unit = notifyForm.value.reminderUnit === 'hours' ? '小时' : '天'
+      if (notifyForm.value.sendImmediately) {
+        successMessage += `，并设置会议前${notifyForm.value.reminderValue}${unit}提醒`
+      } else {
+        successMessage += `设置会议前${notifyForm.value.reminderValue}${unit}提醒`
+      }
+    }
+    
+    message.success(successMessage)
+    notifyModalVisible.value = false
+  } catch (error) {
+    message.error('通知设置失败，请稍后重试')
+  } finally {
+    sendingNotification.value = false
+  }
+}
+
+// 取消通知
+const handleNotifyCancel = () => {
+  notifyModalVisible.value = false
+}
+
+
 
 // 弹窗处理方法
 const handleScheduleSubmit = () => {
+  // 表单验证
+  if (!scheduleForm.value.datetime) {
+    message.error('请选择会议时间')
+    return
+  }
+  if (!scheduleForm.value.location) {
+    message.error('请输入会议地点')
+    return
+  }
+  if (!scheduleForm.value.hosts || scheduleForm.value.hosts.length === 0) {
+    message.error('请选择或输入会议主持人')
+    return
+  }
+  if (!scheduleForm.value.experts || scheduleForm.value.experts.length === 0) {
+    message.error('请选择或输入参会专家')
+    return
+  }
+
   message.success('会议安排完成')
   scheduleModalVisible.value = false
   
@@ -830,12 +1822,14 @@ const handleScheduleSubmit = () => {
   if (selectedProject.value) {
     const newMeeting = {
       ...selectedProject.value,
-      meetingTime: scheduleForm.value.datetime?.format('YYYY-MM-DD HH:mm'),
+      meetingTime: scheduleForm.value.datetime ? dayjs(scheduleForm.value.datetime).format('YYYY-MM-DD HH:mm') : '',
       meetingLocation: scheduleForm.value.location,
       meetingType: scheduleForm.value.type,
-      meetingHost: hostList.value.find(h => h.id === scheduleForm.value.host)?.name,
+      meetingHosts: scheduleForm.value.hosts, // 存储主持人数组
+      meetingHost: scheduleForm.value.hosts.join('、'), // 显示用字符串
       meetingStatus: 'scheduled',
-      experts: scheduleForm.value.experts.map(id => expertList.value.find(e => e.id === id)?.name),
+      experts: scheduleForm.value.experts, // 直接存储专家数组
+      meetingMaterials: scheduleForm.value.materials, // 存储会议资料
       meetingDescription: scheduleForm.value.description
     }
     
@@ -853,43 +1847,106 @@ const handleScheduleCancel = () => {
 }
 
 const handleConclusionSubmit = () => {
+  // 表单验证
+  if (!conclusionForm.value.conclusion) {
+    message.error('请选择验收结论')
+    return
+  }
+  if (!conclusionForm.value.description) {
+    message.error('请填写结论说明')
+    return
+  }
+  if (conclusionForm.value.conclusion !== 'passed' && !conclusionForm.value.requirements) {
+    message.error('请填写整改要求')
+    return
+  }
+
   message.success('验收结论录入完成')
   conclusionModalVisible.value = false
   
-  // 添加到结论列表
+  // 处理结论录入或编辑
   if (selectedMeeting.value) {
-    const newConclusion = {
+    // 检查是否是编辑现有结论
+    const existingConclusionIndex = conclusionList.value.findIndex(c => c.id === selectedMeeting.value.id)
+    
+    const conclusionData = {
       ...selectedMeeting.value,
-      conclusionTime: new Date().toLocaleString(),
+      conclusionTime: existingConclusionIndex > -1 ? selectedMeeting.value.conclusionTime : dayjs().format('YYYY-MM-DD HH:mm:ss'),
       conclusion: conclusionForm.value.conclusion,
       score: conclusionForm.value.score,
       conclusionDescription: conclusionForm.value.description,
       requirements: conclusionForm.value.requirements,
-      expertOpinions: conclusionForm.value.expertOpinions.filter(o => o.expert && o.content)
+      conclusionFiles: conclusionForm.value.conclusionFiles
     }
     
-    conclusionList.value.push(newConclusion)
-    
-    // 更新会议状态
-    selectedMeeting.value.meetingStatus = 'completed'
+    if (existingConclusionIndex > -1) {
+      // 编辑现有结论
+      conclusionList.value[existingConclusionIndex] = conclusionData
+      message.success('结论修改成功')
+    } else {
+      // 新增结论
+      conclusionList.value.push(conclusionData)
+      
+      // 更新会议状态
+      selectedMeeting.value.meetingStatus = 'completed'
+      
+      // 从已安排会议列表中移除该会议
+      const meetingIndex = scheduledMeetingList.value.findIndex(m => m.id === selectedMeeting.value.id)
+      if (meetingIndex > -1) {
+        scheduledMeetingList.value.splice(meetingIndex, 1)
+      }
+    }
   }
+}
+
+const handleEditSubmit = () => {
+  // 表单验证
+  if (!editForm.value.datetime) {
+    message.error('请选择会议时间')
+    return
+  }
+  if (!editForm.value.location) {
+    message.error('请输入会议地点')
+    return
+  }
+  if (!editForm.value.hosts || editForm.value.hosts.length === 0) {
+    message.error('请选择或输入会议主持人')
+    return
+  }
+  if (!editForm.value.experts || editForm.value.experts.length === 0) {
+    message.error('请选择或输入参会专家')
+    return
+  }
+
+  // 更新会议信息
+  if (selectedEditMeeting.value) {
+    selectedEditMeeting.value.meetingTime = editForm.value.datetime ? dayjs(editForm.value.datetime).format('YYYY-MM-DD HH:mm') : ''
+    selectedEditMeeting.value.meetingLocation = editForm.value.location
+    selectedEditMeeting.value.meetingType = editForm.value.type
+    selectedEditMeeting.value.meetingHosts = editForm.value.hosts
+    selectedEditMeeting.value.meetingHost = editForm.value.hosts.join('、')
+    selectedEditMeeting.value.experts = editForm.value.experts
+    selectedEditMeeting.value.meetingMaterials = editForm.value.materials
+    selectedEditMeeting.value.meetingDescription = editForm.value.description
+  }
+
+  message.success('会议信息更新成功')
+  editModalVisible.value = false
+}
+
+const handleEditCancel = () => {
+  editModalVisible.value = false
 }
 
 const handleConclusionCancel = () => {
   conclusionModalVisible.value = false
 }
 
-const addExpertOpinion = () => {
-  conclusionForm.value.expertOpinions.push({
-    expert: '',
-    score: 85,
-    content: ''
-  })
+const handleDetailCancel = () => {
+  detailModalVisible.value = false
 }
 
-const removeExpertOpinion = (index) => {
-  conclusionForm.value.expertOpinions.splice(index, 1)
-}
+// 删除不再使用的专家意见相关方法
 
 // 生命周期
 onMounted(() => {
@@ -1170,33 +2227,24 @@ onMounted(() => {
   line-height: 1.6;
 }
 
-.expert-opinion {
-  padding: 12px;
-  background: #fafafa;
-  border-radius: 6px;
-  margin-bottom: 8px;
-}
-
-.opinion-header {
+/* 结论文件展示样式 */
+.conclusion-files-display {
   display: flex;
-  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.conclusion-files-display .ant-tag {
+  display: inline-flex;
   align-items: center;
-  margin-bottom: 8px;
+  margin: 2px 4px 2px 0;
+  cursor: pointer;
+  transition: all 0.3s ease;
 }
 
-.expert-name {
-  font-weight: 500;
-  color: #262626;
-}
-
-.opinion-score {
-  font-size: 12px;
-  color: #1890ff;
-}
-
-.opinion-content {
-  color: #595959;
-  line-height: 1.5;
+.conclusion-files-display .ant-tag:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 /* 弹窗样式 */
@@ -1216,16 +2264,193 @@ onMounted(() => {
   color: #262626;
 }
 
-.expert-opinions {
+/* 结论上传文件样式 */
+.conclusion-files-section {
+  margin-top: 16px;
+}
+
+.conclusion-file-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: #fafafa;
+  border-radius: 6px;
+  margin-bottom: 8px;
+}
+
+/* 会议资料上传样式 */
+.meeting-materials {
+  width: 100%;
+}
+
+.form-tip {
+  font-size: 12px;
+  color: #8c8c8c;
+  margin-top: 4px;
+  line-height: 1.4;
+}
+
+.upload-tip {
+  font-size: 12px;
+  color: #8c8c8c;
+  margin-top: 8px;
+  line-height: 1.4;
+}
+
+.materials-list {
+  margin-top: 16px;
+  padding: 12px;
+  background: #fafafa;
+  border-radius: 6px;
+  border: 1px solid #f0f0f0;
+}
+
+.material-item {
+  display: flex;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.material-item:last-child {
+  border-bottom: none;
+}
+
+.file-icon {
+  color: #1890ff;
+  margin-right: 8px;
+  font-size: 16px;
+}
+
+.file-name {
+  flex: 1;
+  font-size: 14px;
+  color: #262626;
+  margin-right: 12px;
+  word-break: break-all;
+}
+
+.file-size {
+  font-size: 12px;
+  color: #8c8c8c;
+  margin-right: 12px;
+  min-width: 60px;
+  text-align: right;
+}
+
+/* 多标签样式优化 */
+.ant-select-selector .ant-select-selection-item {
+  display: inline-flex !important;
+  align-items: center;
+}
+
+.ant-tag {
+  display: inline-flex;
+  align-items: center;
+  margin: 2px 3px 2px 0;
+  font-size: 12px;
+  line-height: 20px;
+  white-space: nowrap;
+  border-radius: 4px;
+}
+
+/* 会议资料显示样式 */
+.meeting-materials-display {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.meeting-materials-display .ant-tag {
+  display: inline-flex;
+  align-items: center;
+  margin: 2px 4px 2px 0;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.meeting-materials-display .ant-tag:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* 通知弹窗样式 */
+.notify-modal {
+  padding: 8px 0;
+}
+
+.meeting-summary h4 {
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #262626;
+}
+
+.notify-targets {
+  display: flex;
+  gap: 24px;
+}
+
+.target-group {
+  flex: 1;
+  min-width: 200px;
+}
+
+.group-title {
+  font-weight: 500;
+  color: #262626;
+  margin-bottom: 12px;
+  padding: 8px 12px;
+  background: #f0f2f5;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.target-list {
+  padding: 0 12px;
+}
+
+.select-all-actions {
+  text-align: center;
+  padding: 12px;
+  background: #fafafa;
+  border-radius: 6px;
+  border: 1px dashed #d9d9d9;
+}
+
+.content-tip {
+  font-size: 12px;
+  color: #8c8c8c;
+  margin-top: 8px;
+  line-height: 1.4;
+}
+
+.last-notify-info {
+  margin-top: 16px;
+}
+
+/* 提醒设置样式 */
+.reminder-settings {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-.opinion-item {
+.reminder-option {
+  display: flex;
+  flex-direction: column;
+}
+
+.reminder-time-setting {
+  margin-left: 24px;
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
   padding: 12px;
   background: #fafafa;
-  border-radius: 8px;
+  border-radius: 6px;
+  border: 1px solid #f0f0f0;
 }
 
 /* 响应式设计 */
@@ -1278,5 +2503,112 @@ onMounted(() => {
     align-items: flex-start;
     gap: 4px;
   }
+}
+
+/* 编辑会议弹窗样式 */
+.edit-modal {
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+.project-meeting-info {
+  margin-bottom: 24px;
+}
+
+.project-meeting-info h4 {
+  margin: 0 0 16px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #262626;
+}
+
+/* 结论文件上传样式 */
+.conclusion-files {
+  width: 100%;
+}
+
+.files-list {
+  margin-top: 16px;
+  padding: 12px;
+  background: #fafafa;
+  border-radius: 6px;
+  border: 1px solid #f0f0f0;
+}
+
+.file-item {
+  display: flex;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.file-item:last-child {
+  border-bottom: none;
+}
+
+/* 项目详情弹窗样式 */
+.detail-modal {
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+.detail-section {
+  margin-bottom: 24px;
+}
+
+.detail-section h4 {
+  margin: 0 0 16px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #262626;
+  border-bottom: 1px solid #f0f0f0;
+  padding-bottom: 8px;
+}
+
+.material-item-detail {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  border: 1px solid #f0f0f0;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  background: #fafafa;
+}
+
+.material-item-detail:last-child {
+  margin-bottom: 0;
+}
+
+.material-item-detail .material-info {
+  flex: 1;
+}
+
+.material-item-detail .material-name {
+  display: flex;
+  align-items: center;
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.material-item-detail .material-name .anticon {
+  margin-right: 8px;
+  color: #1890ff;
+}
+
+.material-item-detail .material-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.material-item-detail .material-type {
+  font-size: 12px;
+  color: #666;
+}
+
+.material-item-detail .material-actions {
+  display: flex;
+  gap: 8px;
 }
 </style> 
