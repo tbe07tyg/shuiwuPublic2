@@ -1,60 +1,68 @@
 <template>
-  <div class="project-list-page">
-    <!-- 顶部操作区 -->
-    <div class="project-list-actions">
+  <PageContainer title="项目列表" description="查看和管理所有项目，支持筛选、排序和批量操作">
+    <!-- 操作按钮区域 -->
+    <template #actions>
       <a-button type="primary" @click="onCreate">新建项目</a-button>
       <a-button :disabled="!selectedRowKeys.length" @click="onBatchArchive">批量归档</a-button>
       <a-button @click="onExport">导出Excel</a-button>
-    </div>
-    <!-- 筛选区 -->
-    <a-form layout="inline" class="project-list-filter" @submit.prevent="onSearch">
-      <a-form-item label="项目名称">
-        <a-input v-model="query.name" placeholder="输入项目名称" allow-clear />
-      </a-form-item>
-      <a-form-item label="负责人">
-        <a-select v-model="query.leader" :options="leaderOptions" allow-clear show-search style="width: 140px" />
-      </a-form-item>
-      <a-form-item label="部门">
-        <a-select v-model="query.dept" :options="deptOptions" allow-clear style="width: 140px" />
-      </a-form-item>
-      <a-form-item label="类型">
-        <a-select v-model="query.type" :options="typeOptions" allow-clear style="width: 120px" />
-      </a-form-item>
-      <a-form-item label="状态">
-        <a-select v-model="query.status" :options="statusOptions" allow-clear style="width: 120px" />
-      </a-form-item>
-      <a-form-item>
-        <a-button type="primary" html-type="submit">查询</a-button>
-        <a-button @click="onReset" style="margin-left:8px;">重置</a-button>
-      </a-form-item>
-    </a-form>
-    <!-- 表格区 -->
-    <a-table
-      rowKey="id"
-      :columns="columns"
-      :dataSource="data"
-      :rowSelection="{ selectedRowKeys, onChange: onSelectChange }"
-      :pagination="pagination"
-      bordered
-      size="middle"
-    >
-      <template #progress="{ record }">
-        <a-progress :percent="record.progress" size="small" />
-      </template>
-      <template #status="{ record }">
-        <a-tag :color="statusColorMap[record.status]">{{ statusLabelMap[record.status] }}</a-tag>
-      </template>
-      <template #action="{ record }">
-        <a-button type="link" @click="onDetail(record)">详情</a-button>
-        <a-button type="link" @click="onEdit(record)" v-if="record.status==='在研'">编辑</a-button>
-        <a-button type="link" @click="onArchive(record)" v-if="record.status==='结题'">归档</a-button>
-      </template>
-    </a-table>
-  </div>
+    </template>
+    
+      <!-- 筛选区 -->
+      <a-card class="filter-card">
+        <a-form layout="inline" class="project-list-filter" @submit.prevent="onSearch">
+          <a-form-item label="项目名称">
+            <a-input v-model="query.name" placeholder="输入项目名称" allow-clear />
+          </a-form-item>
+          <a-form-item label="负责人">
+            <a-select v-model="query.leader" :options="leaderOptions" allow-clear show-search style="width: 140px" />
+          </a-form-item>
+          <a-form-item label="部门">
+            <a-select v-model="query.dept" :options="deptOptions" allow-clear style="width: 140px" />
+          </a-form-item>
+          <a-form-item label="类型">
+            <a-select v-model="query.type" :options="typeOptions" allow-clear style="width: 120px" />
+          </a-form-item>
+          <a-form-item label="状态">
+            <a-select v-model="query.status" :options="statusOptions" allow-clear style="width: 120px" />
+          </a-form-item>
+          <a-form-item>
+            <a-button type="primary" html-type="submit">查询</a-button>
+            <a-button @click="onReset" style="margin-left:8px;">重置</a-button>
+          </a-form-item>
+        </a-form>
+      </a-card>
+      
+      <!-- 表格区 -->
+      <a-card class="table-card">
+        <a-table
+          rowKey="id"
+          :columns="columns"
+          :dataSource="data"
+          :rowSelection="{ selectedRowKeys, onChange: onSelectChange }"
+          :pagination="pagination"
+          bordered
+          size="middle"
+        >
+          <template #progress="{ record }">
+            <a-progress :percent="record.progress" size="small" />
+          </template>
+          <template #status="{ record }">
+            <a-tag :color="statusColorMap[record.status]">{{ statusLabelMap[record.status] }}</a-tag>
+          </template>
+          <template #action="{ record }">
+            <a-button type="link" @click="onDetail(record)">详情</a-button>
+            <a-button type="link" @click="onEdit(record)" v-if="record.status==='在研'">编辑</a-button>
+            <a-button type="link" @click="onArchive(record)" v-if="record.status==='结题'">归档</a-button>
+          </template>
+        </a-table>
+      </a-card>
+  </PageContainer>
 </template>
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import PageContainer from '@/components/PageContainer.vue'
+
 /**
  * @description 项目列表页逻辑与数据
  */
@@ -102,21 +110,14 @@ function onEdit(record) { /* 编辑逻辑 */ }
 function onArchive(record) { /* 归档逻辑 */ }
 </script>
 <style scoped>
-.project-list-page {
-  background: #fff;
-  border-radius: 16px;
-  box-shadow: 0 4px 24px rgba(35,79,162,0.08);
-  padding: 32px;
-  margin: 0 auto;
-  max-width: 1400px;
+/**
+ * 所有页面默认样式已由PageContainer提供
+ */
+.filter-card {
+  margin-bottom: 16px;
 }
-.project-list-actions {
-  display: flex;
-  gap: 16px;
-  margin-bottom: 24px;
-  justify-content: flex-end;
-}
+
 .project-list-filter {
-  margin-bottom: 24px;
+  margin-bottom: 0;
 }
 </style> 

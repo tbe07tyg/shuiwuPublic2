@@ -1,0 +1,79 @@
+/* 角色颜色区分样式 */
+
+/* 申请者角色标签 - 橘黄色 */
+.role-colored-tabs :deep(.ant-tabs-tab:nth-child(1)) .ant-tabs-tab-btn,
+.role-colored-tabs :deep(.ant-tabs-tab:nth-child(2)) .ant-tabs-tab-btn,
+.role-colored-tabs :deep(.ant-tabs-tab:nth-child(3)) .ant-tabs-tab-btn {
+  color: #fa8c16;
+  transition: all 0.3s ease;
+}
+
+.role-colored-tabs :deep(.ant-tabs-tab:nth-child(1):hover) .ant-tabs-tab-btn,
+.role-colored-tabs :deep(.ant-tabs-tab:nth-child(2):hover) .ant-tabs-tab-btn,
+.role-colored-tabs :deep(.ant-tabs-tab:nth-child(3):hover) .ant-tabs-tab-btn {
+  color: #d46b08;
+}
+
+.role-colored-tabs :deep(.ant-tabs-tab:nth-child(1).ant-tabs-tab-active),
+.role-colored-tabs :deep(.ant-tabs-tab:nth-child(2).ant-tabs-tab-active),
+.role-colored-tabs :deep(.ant-tabs-tab:nth-child(3).ant-tabs-tab-active) {
+  background: linear-gradient(135deg, #fff7e6 0%, #fff2d3 100%);
+  border: 1px solid #ffec9a;
+  box-shadow: 0 4px 12px rgba(250, 140, 22, 0.15);
+}
+
+.role-colored-tabs :deep(.ant-tabs-tab:nth-child(1).ant-tabs-tab-active) .ant-tabs-tab-btn,
+.role-colored-tabs :deep(.ant-tabs-tab:nth-child(2).ant-tabs-tab-active) .ant-tabs-tab-btn,
+.role-colored-tabs :deep(.ant-tabs-tab:nth-child(3).ant-tabs-tab-active) .ant-tabs-tab-btn {
+  color: #d46b08;
+  font-weight: 600;
+}
+
+/* 管理者角色标签 - 蓝色 */
+.role-colored-tabs :deep(.ant-tabs-tab:nth-child(4)) .ant-tabs-tab-btn,
+.role-colored-tabs :deep(.ant-tabs-tab:nth-child(5)) .ant-tabs-tab-btn {
+  color: #1890ff;
+  transition: all 0.3s ease;
+}
+
+.role-colored-tabs :deep(.ant-tabs-tab:nth-child(4):hover) .ant-tabs-tab-btn,
+.role-colored-tabs :deep(.ant-tabs-tab:nth-child(5):hover) .ant-tabs-tab-btn {
+  color: #096dd9;
+}
+
+.role-colored-tabs :deep(.ant-tabs-tab:nth-child(4).ant-tabs-tab-active),
+.role-colored-tabs :deep(.ant-tabs-tab:nth-child(5).ant-tabs-tab-active) {
+  background: linear-gradient(135deg, #e6f7ff 0%, #d4edda 100%);
+  border: 1px solid #91d5ff;
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.15);
+}
+
+.role-colored-tabs :deep(.ant-tabs-tab:nth-child(4).ant-tabs-tab-active) .ant-tabs-tab-btn,
+.role-colored-tabs :deep(.ant-tabs-tab:nth-child(5).ant-tabs-tab-active) .ant-tabs-tab-btn {
+  color: #096dd9;
+  font-weight: 600;
+}
+
+/* 角色图标样式 - 可选使用 */
+.applicant-role-icon {
+  color: #fa8c16;
+  margin-right: 6px;
+}
+
+.manager-role-icon {
+  color: #1890ff;
+  margin-right: 6px;
+}
+
+/* 角色徽章样式 - 可选使用 */
+.role-badge.applicant {
+  background: linear-gradient(135deg, #fff7e6, #fff2d3);
+  color: #d46b08;
+  border: 1px solid #ffec9a;
+}
+
+.role-badge.manager {
+  background: linear-gradient(135deg, #e6f7ff, #d4edda);
+  color: #096dd9;
+  border: 1px solid #91d5ff;
+} 

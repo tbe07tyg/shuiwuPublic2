@@ -7,299 +7,177 @@
       @openChange="onOpenChange"
       class="main-sider"
       @click="onMenuClick"
-      :style="{ width: '240px', height: '100vh', borderRadius: '16px 0 0 16px', background: '#fff', padding: '32px 0' }"
       :theme="'light'"
+      :inlineIndent="24"
+      :style="{ width: '260px' }"
+      :forceSubMenuRender="true"
+      :multiple="false"
+      :overflowedIndicator="null"
     >
+      <!-- 一级菜单项 -->
       <a-menu-item key="dashboard">
-        <span style="display: flex; align-items: center; width: 100%;">
-          <DashboardOutlined style="margin-right:8px;" />
-          <span>工作台</span>
-          <div class="menu-badge" v-if="unreadCount.dashboard">
-            <a-badge :count="unreadCount.dashboard" />
-          </div>
-        </span>
+        <DashboardOutlined />
+        <span>工作台</span>
       </a-menu-item>
       
+      <!-- 一级菜单：项目管理 -->
       <a-sub-menu key="project" data-menu-id="project">
         <template #title>
-          <ProjectOutlined style="margin-right:8px;" />
+          <ProjectOutlined />
           <span>项目管理</span>
-          <div class="menu-badge" v-if="unreadCount.project">
-            <a-badge :count="unreadCount.project" />
-          </div>
         </template>
         
         <!-- 项目调研 -->
         <a-sub-menu key="project-research" data-menu-id="project-research">
           <template #title>
-            <SearchOutlined style="margin-right:8px;" />
+            <SearchOutlined />
             <span>项目调研</span>
-            <div class="urgent-tag" v-if="hasUrgentResearch">🔴</div>
           </template>
           <a-menu-item key="research-requirements">
-            <DatabaseOutlined style="margin-right:8px;" />
+            <DatabaseOutlined />
             <span>需求池管理</span>
-            <span class="item-count">({{ counts.requirements }})</span>
           </a-menu-item>
           <a-menu-item key="research-results">
-            <FileTextOutlined style="margin-right:8px;" />
+            <FileTextOutlined />
             <span>调研记录</span>
-            <span class="item-count">({{ counts.results }})</span>
           </a-menu-item>
         </a-sub-menu>
         
         <!-- 项目立项 -->
-        <a-sub-menu key="project-approval" data-menu-id="project-approval">
-          <template #title>
-            <AuditOutlined style="margin-right:8px;" />
-            <span>项目立项</span>
-            <div class="urgent-tag" v-if="hasUrgentApproval">🔴</div>
-          </template>
-          <a-menu-item key="approval-center">
-            <FileTextOutlined style="margin-right:8px;" />
-            <span style="display: flex; align-items: center; width: 100%;">
-              <span>立项管理中心</span>
-              <span class="item-count"></span>
-            </span>
-          </a-menu-item>
-          <a-menu-item key="approval-materials">
-            <FolderOutlined style="margin-right:8px;" />
-            <span>申请材料管理</span>
-            <span class="item-count">({{ counts.materials }})</span>
-          </a-menu-item>
-          <a-menu-item key="approval-review">
-            <SolutionOutlined style="margin-right:8px;" />
-            <span>立项论证会</span>
-            <span class="item-count">({{ counts.reviews }})</span>
-          </a-menu-item>
-          <a-menu-item key="approval-decision">
-            <CheckCircleOutlined style="margin-right:8px;" />
-            <span>已立项的项目</span>
-            <span class="item-count">({{ counts.decisions }})</span>
-          </a-menu-item>
-
-        </a-sub-menu>
+        <a-menu-item key="project-approval">
+          <AuditOutlined />
+          <span>项目立项</span>
+        </a-menu-item>
         
         <!-- 项目实施 -->
         <a-sub-menu key="project-implementation" data-menu-id="project-implementation">
           <template #title>
-            <span style="display: flex; align-items: center; width: 100%;">
-              <SettingOutlined style="margin-right:8px;" />
-              <span>项目实施</span>
-              <div class="urgent-tag" v-if="hasUrgentImplementation">🔴</div>
-            </span>
+            <SettingOutlined />
+            <span>项目实施</span>
           </template>
-          <a-menu-item key="implementation-center">
-            <span style="display: flex; align-items: center; width: 100%;">
-              <AppstoreOutlined style="margin-right:8px;" />
-              <span>项目实施管理中心</span>
-              <span class="item-count"></span>
-            </span>
+          
+          <!-- 项目开题 - 调整为二级菜单项 -->
+          <a-menu-item key="implementation-opening" class="implementation-sub-item">
+            <RocketOutlined />
+            <span>项目开题</span>
           </a-menu-item>
-          <a-menu-item key="implementation-opening" @click.stop="showDrawer('opening')">
-            <span style="display: flex; align-items: center; width: 100%;">
-              <RocketOutlined style="margin-right:8px;" />
-              <span>项目开题</span>
-            </span>
+          
+          <!-- 项目中期 - 调整为二级菜单项 -->
+          <a-menu-item key="implementation-midterm" class="implementation-sub-item">
+            <PieChartOutlined />
+            <span>项目中期</span>
           </a-menu-item>
-          <a-menu-item key="implementation-midterm" @click.stop="showDrawer('midterm')">
-            <span style="display: flex; align-items: center; width: 100%;">
-              <PieChartOutlined style="margin-right:8px;" />
-              <span>项目中期</span>
-            </span>
+          
+          <!-- 其它菜单项保持不变 -->
+          <a-menu-item key="implementation-contract" class="implementation-sub-item">
+            <ContainerOutlined />
+            <span>合同管理</span>
           </a-menu-item>
-          <a-menu-item key="implementation-contract">
-            <span style="display: flex; align-items: center; width: 100%;">
-              <ContainerOutlined style="margin-right:8px;" />
-              <span>合同管理</span>
-              <span class="item-count">({{ counts.contracts }})</span>
-            </span>
+          
+          <a-menu-item key="implementation-payment" class="implementation-sub-item">
+            <DollarOutlined />
+            <span>经费执行进度</span>
           </a-menu-item>
-          <a-menu-item key="implementation-payment">
-            <span style="display: flex; align-items: center; width: 100%;">
-              <DollarOutlined style="margin-right:8px;" />
-              <span>经费执行进度</span>
-              <span class="item-count">({{ counts.payments }})</span>
-            </span>
-          </a-menu-item>
-          <a-menu-item key="implementation-progress">
-            <span style="display: flex; align-items: center; width: 100%;">
-              <BarChartOutlined style="margin-right:8px;" />
-              <span>进度监控</span>
-              <span class="item-count">({{ counts.progress }})</span>
-            </span>
+          
+          <a-menu-item key="implementation-progress" class="implementation-sub-item">
+            <LineChartOutlined />
+            <span>进度监控</span>
           </a-menu-item>
         </a-sub-menu>
         
         <!-- 项目验收 -->
-        <a-sub-menu key="project-acceptance" data-menu-id="project-acceptance">
-          <template #title>
-            <span style="display: flex; align-items: center; width: 100%;">
-              <CheckCircleOutlined style="margin-right:8px;" />
-              <span>项目验收</span>
-              <div class="urgent-tag" v-if="hasUrgentAcceptance">🔴</div>
-            </span>
-          </template>
-          
-          <!-- 申报单位角色 (橙色图标) -->
-          <a-menu-item key="acceptance-application-manage">
-            <span style="display: flex; align-items: center; width: 100%;">
-              <FolderOutlined style="margin-right:8px; color: #fa8c16;" />
-              <span>申请管理</span>
-              <span class="item-count">({{ counts.applications }})</span>
-            </span>
-          </a-menu-item>
-          <a-menu-item key="acceptance-application-submit">
-            <span style="display: flex; align-items: center; width: 100%;">
-              <PlusOutlined style="margin-right:8px; color: #fa8c16;" />
-              <span>提交验收</span>
-            </span>
-          </a-menu-item>
-          <a-menu-item key="acceptance-progress-query">
-            <span style="display: flex; align-items: center; width: 100%;">
-              <SearchOutlined style="margin-right:8px; color: #fa8c16;" />
-              <span>进度查询</span>
-            </span>
-          </a-menu-item>
-          
-          <!-- 管理角色 (蓝色图标) -->
-          <a-menu-item key="acceptance-management-center">
-            <span style="display: flex; align-items: center; width: 100%;">
-              <AppstoreOutlined style="margin-right:8px; color: #1890ff;" />
-              <span>管理中心</span>
-              <span class="item-count">({{ counts.acceptance }})</span>
-            </span>
-          </a-menu-item>
-
-
-          <a-menu-item key="acceptance-meeting-conclusion">
-            <span style="display: flex; align-items: center; width: 100%;">
-              <ScheduleOutlined style="margin-right:8px; color: #1890ff;" />
-              <span>会议管理</span>
-            </span>
-          </a-menu-item>
-        </a-sub-menu>
+        <a-menu-item key="project-acceptance">
+          <CheckCircleOutlined />
+          <span>项目验收</span>
+        </a-menu-item>
         
         <!-- 历史档案 (与项目调研、立项、实施、验收同级) -->
         <a-sub-menu key="project-archive" data-menu-id="project-archive">
           <template #title>
-            <span style="display: flex; align-items: center; width: 100%;">
-              <DatabaseOutlined style="margin-right:8px;" />
-              <span>历史档案</span>
-            </span>
+            <DatabaseOutlined />
+            <span>历史档案</span>
           </template>
           <a-menu-item key="project-archive-list">
-            <span style="display: flex; align-items: center; width: 100%;">
-              <FileTextOutlined style="margin-right:8px;" />
-              <span>档案查看</span>
-            </span>
+            <FileTextOutlined />
+            <span>档案查看</span>
           </a-menu-item>
         </a-sub-menu>
       </a-sub-menu>
       
       <!-- 成果管理 -->
       <a-menu-item key="achievements">
-        <span style="display: flex; align-items: center; width: 100%;">
-          <TrophyOutlined style="margin-right:8px;" />
-          <span>成果管理</span>
-          <span class="item-count">({{ counts.achievements }})</span>
-        </span>
+        <TrophyOutlined />
+        <span>成果管理</span>
       </a-menu-item>
       
       <a-menu-item key="analysis">
-        <span style="display: flex; align-items: center; width: 100%;">
-          <BarChartOutlined style="margin-right:8px;" />
-          <span>统计分析</span>
-        </span>
+        <BarChartOutlined />
+        <span>统计分析</span>
       </a-menu-item>
       <a-menu-item key="knowledge-base">
-        <span style="display: flex; align-items: center; width: 100%;">
-          <FileTextOutlined style="margin-right:8px;" />
-          <span>知识库管理</span>
-        </span>
+        <FileTextOutlined />
+        <span>知识库管理</span>
       </a-menu-item>
       <a-sub-menu key="maintenance">
         <template #title>
-          <span style="display: flex; align-items: center; width: 100%;">
-            <ToolOutlined style="margin-right:8px;" />
-            <span>日常维护</span>
-          </span>
+          <ToolOutlined />
+          <span>日常维护</span>
         </template>
 
+        <a-menu-item key="material-template-maintenance">
+          <FileTextOutlined />
+          <span>材料提交模板维护</span>
+        </a-menu-item>
         <a-menu-item key="node-data-maintenance">
-          <span style="display: flex; align-items: center; width: 100%;">
-            <ClusterOutlined style="margin-right:8px;" />
-            <span>节点数据类型维护</span>
-          </span>
+          <ClusterOutlined />
+          <span>节点数据类型维护</span>
         </a-menu-item>
         <a-menu-item key="node-template-maintenance">
-          <span style="display: flex; align-items: center; width: 100%;">
-            <FileTextOutlined style="margin-right:8px;" />
-            <span>节点模板库维护</span>
-          </span>
+          <FileTextOutlined />
+          <span>节点模板库维护</span>
         </a-menu-item>
         <a-menu-item key="implementation-nodes">
-          <span style="display: flex; align-items: center; width: 100%;">
-            <ClusterOutlined style="margin-right:8px;" />
-            <span>节点管理计划</span>
+          <ClusterOutlined />
+          <span>节点管理计划</span>
             <div class="urgent-tag" v-if="hasUrgentNodes">🔴</div>
-          </span>
         </a-menu-item>
         <a-menu-item key="knowledge-maintenance">
-          <span style="display: flex; align-items: center; width: 100%;">
-            <FileTextOutlined style="margin-right:8px;" />
-            <span>知识库维护</span>
-          </span>
+          <FileTextOutlined />
+          <span>知识库维护</span>
         </a-menu-item>
         <a-menu-item key="approval-doc-maintenance">
-          <span style="display: flex; align-items: center; width: 100%;">
-            <FileTextOutlined style="margin-right:8px;" />
-            <span>立项申报书维护</span>
-          </span>
+          <FileTextOutlined />
+          <span>立项申报书维护</span>
         </a-menu-item>
         <a-menu-item key="budget-template-maintenance">
-          <span style="display: flex; align-items: center; width: 100%;">
-            <FileTextOutlined style="margin-right:8px;" />
-            <span>预算模板维护</span>
-          </span>
+          <FileTextOutlined />
+          <span>预算模板维护</span>
         </a-menu-item>
         <a-menu-item key="ppt-template-maintenance">
-          <span style="display: flex; align-items: center; width: 100%;">
-            <FileTextOutlined style="margin-right:8px;" />
-            <span>立项ppt模板维护</span>
-          </span>
+          <FileTextOutlined />
+          <span>立项ppt模板维护</span>
         </a-menu-item>
         <a-menu-item key="inquiry-sms-template-maintenance">
-          <span style="display: flex; align-items: center; width: 100%;">
-            <MailOutlined style="margin-right:8px;" />
-            <span>询价短信模板维护</span>
-          </span>
+          <MailOutlined />
+          <span>询价短信模板维护</span>
         </a-menu-item>
         <a-menu-item key="role-permission-maintenance">
-          <span style="display: flex; align-items: center; width: 100%;">
-            <SafetyOutlined style="margin-right:8px;" />
-            <span>角色与权限维护</span>
-          </span>
+          <SafetyOutlined />
+          <span>角色与权限维护</span>
         </a-menu-item>
 
         <a-menu-item key="staff-maintenance">
-          <span style="display: flex; align-items: center; width: 100%;">
-            <UserOutlined style="margin-right:8px;" />
-            <span>员工管理维护</span>
-          </span>
+          <UserOutlined />
+          <span>员工管理维护</span>
         </a-menu-item>
       </a-sub-menu>
       <a-menu-item key="settings">
-        <span style="display: flex; align-items: center; width: 100%;">
-          <SettingOutlined style="margin-right:8px;" />
-          <span>系统设置</span>
-        </span>
+        <SettingOutlined />
+        <span>系统设置</span>
       </a-menu-item>
       <a-menu-item key="preview">
-        <span style="display: flex; align-items: center; width: 100%;">
-          <AppstoreOutlined style="margin-right:8px;" />
-          <span>方案预览</span>
-        </span>
+        <AppstoreOutlined />
+        <span>方案预览</span>
       </a-menu-item>
     </a-menu>
     
@@ -349,7 +227,7 @@
 
 <script setup>
 import { useRouter, useRoute } from 'vue-router'
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { 
   AppstoreOutlined, ProjectOutlined, FileTextOutlined, SettingOutlined,
   DashboardOutlined, SearchOutlined, AuditOutlined, DatabaseOutlined,
@@ -359,35 +237,87 @@ import {
   UnorderedListOutlined, BarChartOutlined, PieChartOutlined, FundOutlined,
   RocketOutlined, MailOutlined, ToolOutlined, UserOutlined,
   FileAddOutlined, ScheduleOutlined, RightOutlined, TrophyOutlined,
-  PlusOutlined, FileSearchOutlined
+  PlusOutlined, FileSearchOutlined, LineChartOutlined
 } from '@ant-design/icons-vue'
 
 const router = useRouter()
 const route = useRoute()
 
+// 手动管理的选中状态
+const manualSelectedKeys = ref([])
+
 // 选中的菜单项
 const selectedKey = computed(() => {
-  // 如果有自定义选中状态，优先使用
+  // 优先使用手动管理的选中状态
+  if (manualSelectedKeys.value.length > 0) {
+    return manualSelectedKeys.value
+  }
+  
+  // 如果有自定义选中状态，使用它
   if (customSelectedKeys.value.length > 0) {
     return customSelectedKeys.value
   }
   
   const path = route.path
-  // 根据路径匹配菜单key
-  if (path.includes('/research/')) return [path.replace('/', '').replace('/', '-')]
-  if (path.includes('/approval/')) return [path.replace('/', '').replace('/', '-')]
-  if (path.includes('/implementation/')) return [path.replace('/', '').replace('/', '-')]
-  if (path.includes('/analytics/')) return [path.replace('/', '').replace('/', '-')]
-  if (path === '/analytics') return ['analysis']
-  if (path.includes('/project/list')) return ['project-list']
-  if (path.includes('/project/')) return ['project-overview']
   
-  const key = path.replace('/', '')
-  return key ? [key] : ['dashboard']
+  // 精确匹配菜单项
+  const routeToKeyMap = {
+    '/dashboard': 'dashboard',
+    '/project': 'project',  // 项目管理父菜单
+    
+    // 项目调研
+    '/research/requirements': 'research-requirements',
+    '/research/results': 'research-results',
+    
+    // 项目立项
+    '/approval/center': 'approval-center',
+    '/approval/materials': 'approval-materials', 
+    '/approval/review': 'approval-review',
+    '/approval/decision': 'approval-decision',
+    
+    // 项目实施
+    '/implementation/center': 'implementation-center',
+    '/implementation/contract': 'implementation-contract',
+    '/implementation/nodes': 'implementation-nodes',
+    '/implementation/payment': 'implementation-payment',
+    '/implementation/progress': 'implementation-progress',
+    '/implementation/opening': 'implementation-opening',
+    '/implementation/midterm': 'implementation-midterm',
+    '/implementation/approval': 'project-approval',
+    '/implementation/acceptance': 'project-acceptance',
+    
+    // 其他页面
+    '/project/archive': 'project-archive-list',
+    '/analytics': 'analysis',
+    '/achievements': 'achievements',
+    '/literature': 'knowledge-base',
+    '/settings': 'settings',
+    '/preview': 'preview'
+  }
+  
+  // 直接匹配路径
+  if (routeToKeyMap[path]) {
+    return [routeToKeyMap[path]]
+  }
+  
+  // 处理动态路由和子路径
+  if (path.startsWith('/project/') && path !== '/project/archive') {
+    return ['project']
+  }
+  
+  // 默认选中工作台
+  return ['dashboard']
 })
 
-// 默认展开的菜单 (v3.0增加project-acceptance和project-archive)
-const openKeys = ref(['project', 'research', 'approval', 'implementation', 'project-acceptance', 'project-archive', 'maintenance'])
+// 默认展开的菜单
+const openKeys = ref([
+  'project',
+  'project-research',
+  'project-approval',
+  'project-implementation',
+  'project-archive',
+  'maintenance'
+])
 
 // 数据统计 (实际项目中从API获取) - v3.0版本
 const counts = ref({
@@ -399,6 +329,10 @@ const counts = ref({
   contracts: 12,
   payments: 18,
   progress: 25,
+  opening: 15, // 待开题项目数量（管理角色）
+  openingApplications: 6, // 开题申请数量（申报单位角色）
+  midterm: 18, // 待中期检查项目数量（管理角色）
+  midtermApplications: 9, // 中期申请数量（申报单位角色）
   acceptance: 12, // 待验收项目数量（管理角色）
   applications: 8, // 验收申请数量（申报单位角色）
   achievements: 45
@@ -414,6 +348,8 @@ const unreadCount = ref({
 const hasUrgentResearch = computed(() => true) // 有紧急调研任务
 const hasUrgentApproval = computed(() => true) // 有紧急审批
 const hasUrgentImplementation = computed(() => true) // 有紧急实施任务
+const hasUrgentOpening = computed(() => true) // 有紧急开题任务
+const hasUrgentMidterm = computed(() => true) // 有紧急中期任务
 const hasUrgentAcceptance = computed(() => true) // 有紧急验收任务
 const hasUrgentNodes = computed(() => true) // 有紧急节点
 
@@ -442,21 +378,17 @@ function onOpenChange(keys) {
   openKeys.value = keys
 }
 
-function onMenuClick({ key }) {
-  // 跳过抽屉菜单项 (v3.0移除acceptance)
-  if (['implementation-opening', 'implementation-midterm'].includes(key)) {
-    return
-  }
-  
-  // 清除自定义选中状态
+function onMenuClick({ key, keyPath }) {
+  // 清除所有选中状态
   customSelectedKeys.value = []
+  manualSelectedKeys.value = []
   
   // 路由映射
   const routeMap = {
     'dashboard': '/dashboard',
-    'project-overview': '/project',
+    'project': '/project',  // 父菜单项目管理的路由
     
-    // 项目调研路由 (v2.0简化)
+    // 项目调研路由
     'research-requirements': '/research/requirements',
     'research-results': '/research/results',
     
@@ -473,26 +405,40 @@ function onMenuClick({ key }) {
     'implementation-payment': '/implementation/payment',
     'implementation-progress': '/implementation/progress',
     
-    // 项目验收路由 (v3.0角色分离版本)
-    // 申报单位角色
-    'acceptance-application-manage': '/acceptance/application/manage',
-    'acceptance-application-submit': '/acceptance/application/submit',
-    'acceptance-progress-query': '/acceptance/progress/query',
-    // 管理角色
-    'acceptance-management-center': '/acceptance/management/center',
-    'acceptance-meeting-conclusion': '/acceptance/meeting/conclusion',
+    // 项目开题路由 - 使用新的路由
+    'implementation-opening': '/implementation/opening',
+    
+    // 项目中期路由 - 使用新的路由
+    'implementation-midterm': '/implementation/midterm',
+    
+    // 项目立项路由 - 直接使用整合页面
+    'project-approval': '/implementation/approval',
+    
+    // 项目验收路由 - 直接使用整合页面
+    'project-acceptance': '/implementation/acceptance',
     
     // 项目管理路由
     'project-archive-list': '/project/archive',
     
     // 统计分析路由
     'analysis': '/analytics',
-    'analytics-project': '/analytics/project',
-    'analytics-finance': '/analytics/finance',
-    'analytics-efficiency': '/analytics/efficiency',
     
     // 成果管理路由
     'achievements': '/achievements',
+    
+    // 维护相关菜单
+    'maintenance': '/settings', // 日常维护暂时跳转到设置页面
+    'node-data-maintenance': '/settings',
+    'node-template-maintenance': '/settings',
+    'implementation-nodes': '/settings',
+    'knowledge-maintenance': '/settings',
+    'approval-doc-maintenance': '/settings',
+    'budget-template-maintenance': '/settings',
+    'ppt-template-maintenance': '/settings',
+    'inquiry-sms-template-maintenance': '/settings',
+    'role-permission-maintenance': '/settings',
+    'staff-maintenance': '/settings',
+    'material-template-maintenance': '/settings/material-template',
     
     // 其他路由
     'knowledge-base': '/literature',
@@ -535,236 +481,299 @@ function navigateToPage(type) {
   router.push(path)
   closeDrawer()
 }
+
+// 监听路由变化，清除手动选中状态
+watch(() => route.path, () => {
+  manualSelectedKeys.value = []
+  customSelectedKeys.value = []
+}, { immediate: true })
+
+// 页面挂载后执行初始化
+onMounted(() => {
+  // 确保初始状态正确
+  manualSelectedKeys.value = []
+  customSelectedKeys.value = []
+  
+  // 移除内联样式
+  setTimeout(() => {
+    removeInlineStyles()
+  }, 100)
+})
+
+/* 这个函数会查找菜单项中的内联样式并移除 */
+function removeInlineStyles() {
+  // 获取所有菜单项
+  const menuItems = document.querySelectorAll('.ant-menu-item, .ant-menu-submenu-title');
+  
+  // 遍历菜单项
+  menuItems.forEach(item => {
+    // 移除内联样式
+    const icons = item.querySelectorAll('.anticon');
+    icons.forEach(icon => {
+      icon.style.marginRight = '';
+      icon.style.fontSize = '';
+    });
+    
+    // 移除span上的内联样式
+    const spans = item.querySelectorAll('span');
+    spans.forEach(span => {
+      span.style.fontSize = '';
+      span.style.fontWeight = '';
+      span.style.paddingLeft = '';
+      
+      // 对于显示为...的菜单项，添加特殊类
+      if (span.textContent.trim() === '...') {
+        item.classList.add('menu-item-ellipsis');
+        span.style.display = 'inline-block';
+        span.style.maxWidth = '100%';
+        span.style.overflow = 'visible';
+      }
+    });
+  });
+  
+  // 修复可能被截断的菜单项
+  fixTruncatedMenuItems();
+}
+
+// 添加新方法来修复可能被截断的菜单项
+function fixTruncatedMenuItems() {
+  // 查找所有菜单项内容容器
+  const titleContents = document.querySelectorAll('.ant-menu-title-content');
+  
+  // 遍历并应用修复
+  titleContents.forEach(content => {
+    content.style.whiteSpace = 'normal';
+    content.style.wordBreak = 'break-word';
+  });
+}
 </script>
 
 <style scoped>
+/* 主布局 */
 .main-layout {
   display: flex;
-  min-height: 100vh;
-  background: #f5f8ff;
-}
-
-.main-sider {
-  box-shadow: 2px 0 8px rgba(35,79,162,0.06);
   height: 100vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  padding-top: 32px;
-  border-radius: 16px 0 0 16px;
-  overflow-y: auto; /* 支持滚动 */
+  background: #f5f8ff;
+  overflow: hidden;
 }
 
-/* 一级菜单项样式 */
-.main-sider :deep(.ant-menu-item),
-.main-sider :deep(.ant-menu-submenu-title) {
-  height: 48px !important;
-  line-height: 48px !important;
-  font-size: 16px !important;
-  font-weight: 600;
-  border-radius: 8px;
-  margin: 8px 0;
-  padding: 0 24px !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: space-between;
-  transition: background 0.2s, color 0.2s;
+/* 侧边栏容器 */
+.main-sider {
   position: relative;
-}
-
-/* 菜单图标样式 */
-.main-sider :deep(.ant-menu-submenu-title) .anticon,
-.main-sider :deep(.ant-menu-item) .anticon {
-  font-size: 18px;
-  margin-right: 8px;
-  vertical-align: middle;
-}
-
-/* 选中状态样式 */
-.main-sider :deep(.ant-menu-item-selected) {
-  background: #234fa2 !important;
-  color: #fff !important;
-  font-weight: bold;
-  box-shadow: 0 2px 8px #234fa233;
-}
-
-/* 悬停状态样式 */
-.main-sider :deep(.ant-menu-item:hover),
-.main-sider :deep(.ant-menu-submenu-title:hover) {
-  background: #eaf0fa !important;
-  color: #234fa2 !important;
-}
-
-/* 二级菜单项样式 */
-.main-sider :deep(.ant-menu .ant-menu .ant-menu-item) {
-  height: 40px !important;
-  line-height: 40px !important;
-  font-size: 15px !important;
-  font-weight: 500;
-  padding: 0 20px 0 40px !important;
-  border-radius: 6px;
-  margin: 4px 0;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: space-between !important;
-}
-
-/* 确保二级菜单项内容对齐 */
-.main-sider :deep(.ant-menu .ant-menu .ant-menu-item > span) {
-  display: flex !important;
-  align-items: center !important;
-  width: 100% !important;
-  justify-content: space-between !important;
-}
-
-/* 三级菜单项样式 */
-.main-sider :deep(.ant-menu-sub .ant-menu-item) {
-  height: 36px !important;
-  line-height: 36px !important;
-  font-size: 14px !important;
-  font-weight: 500;
-  padding: 0 16px 0 60px !important;
-  border-radius: 6px;
-  margin: 2px 0;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-/* 徽章样式 */
-.menu-badge {
-  margin-left: auto;
-  display: flex;
-  align-items: center;
-}
-
-.menu-badge :deep(.ant-badge) {
-  line-height: 1;
-}
-
-.menu-badge :deep(.ant-badge-count) {
-  font-size: 10px;
-  min-width: 16px;
-  height: 16px;
-  line-height: 16px;
-  padding: 0 4px;
-  background: #ff4d4f;
-  border-radius: 8px;
-}
-
-/* 数量标识样式 */
-.item-count {
-  font-size: 12px;
-  color: #8c8c8c;
-  margin-left: auto;
-  font-weight: normal;
-}
-
-/* 紧急标签样式 */
-.urgent-tag {
-  margin-left: auto;
-  font-size: 12px;
-  animation: blink 1.5s infinite;
-}
-
-@keyframes blink {
-  0%, 50% { opacity: 1; }
-  51%, 100% { opacity: 0.3; }
-}
-
-/* 菜单项内容布局 */
-.main-sider :deep(.ant-menu-item) > span,
-.main-sider :deep(.ant-menu-submenu-title) > span {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-}
-
-/* 项目管理子菜单缩进 - 针对项目管理下的所有子菜单 */
-.main-sider :deep(.ant-menu-submenu[data-menu-id="project-research"] > .ant-menu-submenu-title),
-.main-sider :deep(.ant-menu-submenu[data-menu-id="project-approval"] > .ant-menu-submenu-title),
-.main-sider :deep(.ant-menu-submenu[data-menu-id="project-implementation"] > .ant-menu-submenu-title),
-.main-sider :deep(.ant-menu-submenu[data-menu-id="project-acceptance"] > .ant-menu-submenu-title),
-.main-sider :deep(.ant-menu-submenu[data-menu-id="project-archive"] > .ant-menu-submenu-title) {
-  padding-left: 36px !important;
-}
-
-/* 展开/收起状态过渡 */
-.main-sider :deep(.ant-menu-submenu) {
-  transition: all 0.3s ease;
-}
-
-.main-sider :deep(.ant-menu-submenu-open) .ant-menu-submenu-arrow {
-  transform: rotate(180deg);
-}
-
-/* 滚动条样式 */
-.main-sider::-webkit-scrollbar {
-  width: 4px;
-}
-
-.main-sider::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.main-sider::-webkit-scrollbar-thumb {
-  background: #d9d9d9;
-  border-radius: 2px;
-}
-
-.main-sider::-webkit-scrollbar-thumb:hover {
-  background: #bfbfbf;
+  flex: 0 0 260px;
+  max-width: 260px;
+  min-width: 260px;
+  width: 260px !important;
+  height: 100vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: #fff;
+  border-radius: 16px 0 0 16px;
+  box-shadow: 2px 0 8px rgba(35,79,162,0.06);
+  padding: 24px 0;
 }
 
 /* 主内容区域 */
 .main-content {
   flex: 1;
-  padding: 32px;
+  padding: 24px;
   overflow-y: auto;
+  overflow-x: hidden;
+  margin-left: 8px;
 }
 
-/* 响应式设计 */
-@media (max-width: 768px) {
-  .main-sider {
-    position: fixed;
-    left: 0;
-    top: 0;
-    z-index: 1000;
-    width: 240px;
-    transform: translateX(-100%);
-    transition: transform 0.3s ease;
-  }
-  
-  .main-sider.mobile-open {
-    transform: translateX(0);
-  }
-  
-  .main-content {
-    padding: 16px;
-  }
+/* 菜单基本样式 */
+:deep(.ant-menu) {
+  background: transparent;
+  border-right: none;
+  font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
 }
 
-/* 深色主题适配 */
-@media (prefers-color-scheme: dark) {
-  .main-layout {
-    background: #141414;
-  }
-  
-  .main-sider {
-    background: #001529;
-    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.15);
-  }
-  
-  .main-sider :deep(.ant-menu-item:hover),
-  .main-sider :deep(.ant-menu-submenu-title:hover) {
-    background: #112a47 !important;
-    color: #1890ff !important;
-  }
-  
-  .item-count {
-    color: #8c9aae;
-  }
+/* 恢复缩进 - 一级菜单 */
+:deep(.ant-menu > .ant-menu-item),
+:deep(.ant-menu > .ant-menu-submenu > .ant-menu-submenu-title) {
+  padding-left: 24px !important;
+}
+
+/* 二级菜单缩进 */
+:deep(.ant-menu-sub > .ant-menu-item),
+:deep(.ant-menu-sub > .ant-menu-submenu > .ant-menu-submenu-title) {
+  padding-left: 48px !important;
+}
+
+/* 三级菜单缩进 */
+:deep(.ant-menu-sub .ant-menu-sub .ant-menu-item) {
+  padding-left: 72px !important;
+}
+
+/* 子菜单样式 */
+:deep(.ant-menu-sub) {
+  position: relative !important;
+  max-height: none !important;
+  overflow: visible !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  border-right: none !important;
+}
+
+/* 优化菜单布局，确保文本不会被截断 */
+:deep(.ant-menu-item-only-child) {
+  padding-right: 16px !important;
+  width: auto !important;
+}
+
+/* 三个点的菜单项特别处理 */
+:deep(.ant-menu-item) span[title="..."], 
+:deep(.ant-menu-submenu-title) span[title="..."] {
+  max-width: none !important;
+  font-weight: bold;
+}
+
+/* 优化子菜单容器 */
+:deep(.ant-menu-inline) {
+  width: 100%;
+}
+
+/* 调整菜单项通用样式 */
+:deep(.ant-menu-item), 
+:deep(.ant-menu-submenu-title) {
+  height: auto !important;
+  min-height: 40px;
+  line-height: 40px !important;
+  margin: 4px 8px 4px 0 !important;
+  border-radius: 0 8px 8px 0;
+  display: flex !important;
+  align-items: center !important;
+  padding: 8px 16px !important;
+  white-space: normal !important; /* 允许文本换行 */
+  word-break: break-word;
+  overflow: visible !important;
+}
+
+/* 确保子菜单项的宽度足够 */
+:deep(.ant-menu-item span),
+:deep(.ant-menu-submenu-title span) {
+  color: rgba(0, 0, 0, 0.85) !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  display: inline-block !important;
+  overflow: visible !important;
+  white-space: normal !important; /* 允许文本换行 */
+  max-width: 180px; /* 控制文本最大宽度 */
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+/* 菜单样式统一配置 */
+
+/* 一级菜单图标和文本样式 */
+:deep(.ant-menu > .ant-menu-item > .anticon),
+:deep(.ant-menu > .ant-menu-submenu > .ant-menu-submenu-title > .anticon) {
+  font-size: 18px !important;
+  margin-right: 12px !important;
+  min-width: 18px !important;
+}
+
+:deep(.ant-menu > .ant-menu-item > span),
+:deep(.ant-menu > .ant-menu-submenu > .ant-menu-submenu-title > span) {
+  font-size: 16px !important;
+  font-weight: 600 !important;
+}
+
+/* 二级菜单图标和文本样式 */
+:deep(.ant-menu-sub > .ant-menu-item > .anticon),
+:deep(.ant-menu-sub > .ant-menu-submenu > .ant-menu-submenu-title > .anticon) {
+  font-size: 16px !important;
+  margin-right: 10px !important;
+  min-width: 16px !important;
+}
+
+:deep(.ant-menu-sub > .ant-menu-item > span),
+:deep(.ant-menu-sub > .ant-menu-submenu > .ant-menu-submenu-title > span) {
+  font-size: 14px !important;
+  font-weight: 500 !important;
+}
+
+/* 三级菜单图标和文本样式 */
+:deep(.ant-menu-sub .ant-menu-sub .ant-menu-item > .anticon) {
+  font-size: 14px !important;
+  margin-right: 8px !important;
+  min-width: 14px !important;
+}
+
+:deep(.ant-menu-sub .ant-menu-sub .ant-menu-item > span) {
+  font-size: 13px !important;
+  font-weight: 400 !important;
+}
+
+/* 菜单项悬停和选中效果 */
+:deep(.ant-menu-item:hover), 
+:deep(.ant-menu-submenu-title:hover) {
+  background-color: rgba(35, 79, 162, 0.08) !important;
+  color: #234fa2 !important;
+}
+
+:deep(.ant-menu-item:hover .anticon),
+:deep(.ant-menu-submenu-title:hover .anticon) {
+  color: #234fa2 !important;
+}
+
+:deep(.ant-menu-item-selected) {
+  background-color: rgba(35, 79, 162, 0.15) !important;
+  color: #234fa2 !important;
+  font-weight: 600 !important;
+}
+
+:deep(.ant-menu-item-selected .anticon) {
+  color: #234fa2 !important;
+}
+
+:deep(.ant-menu-item-selected::after) {
+  border-right: 3px solid #234fa2 !important;
+}
+
+/* 确保子菜单选中时父菜单也有相应样式 */
+:deep(.ant-menu-submenu-selected > .ant-menu-submenu-title) {
+  color: #234fa2 !important;
+  font-weight: 600 !important;
+}
+
+:deep(.ant-menu-submenu-selected > .ant-menu-submenu-title .anticon) {
+  color: #234fa2 !important;
+}
+
+/* 展开状态的子菜单容器样式 */
+:deep(.ant-menu-submenu-open > .ant-menu-submenu-title) {
+  color: #234fa2 !important;
+}
+
+:deep(.ant-menu-submenu-open > .ant-menu-submenu-title .anticon) {
+  color: #234fa2 !important;
+}
+
+/* 菜单项数量标签样式 */
+.item-count {
+  margin-left: 8px;
+  color: #8c8c8c;
+  font-size: 12px;
+  background-color: #f5f5f5;
+  padding: 0 6px;
+  border-radius: 10px;
+  display: inline-block;
+  line-height: 1.5;
+}
+
+/* 紧急标签样式 */
+.urgent-tag {
+  margin-left: 8px;
+  animation: pulse 1.5s infinite;
+  filter: drop-shadow(0 0 2px rgba(255, 77, 79, 0.5));
+}
+
+@keyframes pulse {
+  0% { opacity: 0.6; transform: scale(0.95); }
+  50% { opacity: 1; transform: scale(1.05); }
+  100% { opacity: 0.6; transform: scale(0.95); }
 }
 
 /* 抽屉样式 */
@@ -849,4 +858,147 @@ function navigateToPage(type) {
   color: #234fa2;
   transform: translateX(4px);
 }
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .main-sider {
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: 1000;
+    width: 240px;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+  
+  .main-sider.mobile-open {
+    transform: translateX(0);
+  }
+  
+  .main-content {
+    padding: 16px;
+  }
+}
+
+/* 为不同级别的菜单添加类 */
+.menu-icon-level1 {
+  font-size: 20px !important;
+  margin-right: 16px !important;
+}
+
+.menu-icon-level2 {
+  font-size: 18px !important;
+  margin-right: 12px !important;
+}
+
+.menu-icon-level3 {
+  font-size: 16px !important;
+  margin-right: 8px !important;
+}
+
+.menu-text-level1 {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.menu-text-level2 {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.menu-text-level3 {
+  font-size: 13px;
+  font-weight: 400;
+}
+
+/* 确保菜单项内容不会被截断 */
+:deep(.ant-menu-title-content) {
+  white-space: normal;
+  word-break: break-word;
+  flex: 1;
+  max-width: 100%;
+}
+
+/* 修复带有三个点的菜单项 */
+.menu-item-ellipsis span {
+  max-width: 100% !important;
+  text-overflow: clip !important;
+  overflow: visible !important;
+}
+
+/* 修复菜单项文本宽度 */
+:deep(.ant-menu-item span),
+:deep(.ant-menu-submenu-title span) {
+  display: inline-block !important;
+  max-width: 100% !important;
+  overflow: visible !important;
+}
+
+/* 调整菜单项图标的位置 */
+:deep(.ant-menu-item) .anticon, 
+:deep(.ant-menu-submenu-title) .anticon {
+  font-size: 16px !important;
+  margin-right: 12px !important;
+  min-width: 16px !important;
+}
+
+/* 实施下的二级菜单项统一样式 - 与其他二级菜单保持一致 */
+.implementation-sub-item {
+  position: relative;
+  transition: all 0.2s ease-in-out;
+  overflow: visible !important;
+}
+
+.implementation-sub-item .anticon {
+  color: #595959;
+  transition: all 0.25s ease;
+}
+
+.implementation-sub-item span:not(.item-count) {
+  color: #595959;
+  transition: all 0.25s ease;
+}
+
+.implementation-sub-item:hover .anticon {
+  color: #234fa2;
+  transform: scale(1.1);
+}
+
+.implementation-sub-item:hover span:not(.item-count) {
+  color: #234fa2;
+}
+
+/* 标签样式美化 */
+.custom-tabs :deep(.ant-tabs-nav) {
+  margin-bottom: 24px;
+  background: linear-gradient(to right, #f9f9f9, #f0f5ff);
+  border-radius: 8px;
+  padding: 6px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.custom-tabs :deep(.ant-tabs-tab) {
+  margin: 0 4px;
+  padding: 12px 20px;
+  border-radius: 6px;
+  transition: all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
+}
+
+.custom-tabs :deep(.ant-tabs-tab-active) {
+  background-color: #fff;
+  box-shadow: 0 3px 10px rgba(24, 144, 255, 0.1);
+}
+
+.custom-tabs :deep(.ant-tabs-tab-btn) {
+  font-weight: 500;
+  font-size: 15px;
+  transition: all 0.25s;
+}
+
+.custom-tabs :deep(.ant-tabs-tab:hover .ant-tabs-tab-btn) {
+  color: #40a9ff;
+  transform: translateY(-1px);
+}
+
+
 </style> 

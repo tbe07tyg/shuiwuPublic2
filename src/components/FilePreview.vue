@@ -62,30 +62,30 @@
           </div>
         </div>
 
-                <!-- Office 文档预览 -->
+        <!-- Office 文档预览 -->
         <div v-else-if="isOfficeFile" class="office-preview">
           <!-- 自动转换为PDF预览 -->
           <div v-if="convertedPdfUrl" class="pdf-preview">
             <div class="pdf-toolbar">
-              <a-space>
+            <a-space>
                 <a-button @click="zoomOut" :disabled="scale <= 0.5">
                   <ZoomOutOutlined />
-                </a-button>
+              </a-button>
                 <span class="zoom-info">{{ Math.round(scale * 100) }}%</span>
                 <a-button @click="zoomIn" :disabled="scale >= 3">
                   <ZoomInOutlined />
-                </a-button>
+              </a-button>
                 <a-divider type="vertical" />
                 <span>{{ getFileTypeText(fileInfo.type) }} (已转换为PDF)</span>
-              </a-space>
-            </div>
+            </a-space>
+          </div>
             <div class="pdf-viewer">
-              <iframe 
+            <iframe 
                 :src="convertedPdfUrl"
-                frameborder="0"
-                width="100%"
-                height="600px"
-              ></iframe>
+              frameborder="0"
+              width="100%"
+              height="600px"
+            ></iframe>
             </div>
           </div>
           
@@ -124,7 +124,7 @@
           
           <!-- 转换错误或等待状态 -->
           <div v-else class="conversion-error">
-            <div class="unavailable-content">
+              <div class="unavailable-content">
               <ExportOutlined style="font-size: 48px; color: #ff4d4f;" />
               <h3>{{ getFileTypeText(fileInfo.type) }} 转换遇到问题</h3>
               <p>智能转换服务暂时不可用，请稍后重试</p>

@@ -6,27 +6,16 @@
  * @date 2025-01-22
 -->
 <template>
-  <div class="project-archive">
-    <!-- 页面头部 -->
-    <div class="page-header">
-      <div class="header-content">
-        <h1 class="page-title">
-          <span class="title-icon">
-            <DatabaseOutlined />
-          </span>
-          项目历史档案
-        </h1>
-        <p class="page-description">
-          查看项目从开题到验收的完整历史记录
-        </p>
-      </div>
-      <div class="header-actions">
+  <PageContainer
+    title="项目历史档案"
+    description="查看项目从开题到验收的完整历史记录">
+    <!-- 页面操作区 -->
+    <template #actions>
         <a-button @click="exportArchive">
           <ExportOutlined />
           导出档案
         </a-button>
-      </div>
-    </div>
+    </template>
 
     <!-- 查询筛选 -->
     <div class="query-section">
@@ -83,20 +72,20 @@
         <div class="project-header">
           <div class="project-basic">
             <div class="project-main-info">
-              <h3 class="project-name">{{ project.name }}</h3>
-              <div class="project-meta">
+            <h3 class="project-name">{{ project.name }}</h3>
+            <div class="project-meta">
                 <a-tag color="blue">{{ project.code }}</a-tag>
                 <span class="project-leader">{{ project.leader }}</span>
                 <span class="project-duration">{{ project.startDate }} ~ {{ project.endDate }}</span>
-              </div>
-            </div>
-            <div class="project-status">
-              <a-tag :color="getStatusColor(project.currentStatus)" size="large">
-                {{ getStatusText(project.currentStatus) }}
-              </a-tag>
             </div>
           </div>
-          
+          <div class="project-status">
+            <a-tag :color="getStatusColor(project.currentStatus)" size="large">
+              {{ getStatusText(project.currentStatus) }}
+            </a-tag>
+          </div>
+        </div>
+
           <!-- 快速统计信息 -->
           <div class="project-quick-stats">
             <div class="stat-item">
@@ -123,41 +112,41 @@
                 <RocketOutlined v-if="project.phases.opening.status === 'completed'" />
                 <ClockCircleOutlined v-else-if="project.phases.opening.status === 'in_progress'" />
                 <ExclamationCircleOutlined v-else />
-              </div>
+                </div>
               <div class="phase-content">
                 <div class="phase-title">项目开题</div>
                 <div class="phase-time">{{ project.phases.opening.time || '未开始' }}</div>
                 <div class="phase-meeting">
                   会议：{{ project.phases.opening.meetingDate || '未安排' }}
-                </div>
+                  </div>
                 <div class="phase-conclusion">
                   {{ project.phases.opening.conclusion || '待定' }}
                 </div>
-              </div>
-              <div class="phase-actions">
-                <a-button
-                  type="link"
-                  size="small"
-                  @click="viewPhaseDetail(project, 'opening')"
-                >
+                  </div>
+                  <div class="phase-actions">
+                    <a-button
+                      type="link"
+                      size="small"
+                      @click="viewPhaseDetail(project, 'opening')"
+                    >
                   详情
-                </a-button>
-                <a-button
-                  v-if="project.phases.opening.materials"
-                  type="link"
-                  size="small"
-                  @click="downloadPhaseMaterials(project, 'opening')"
-                >
+                    </a-button>
+                    <a-button
+                      v-if="project.phases.opening.materials"
+                      type="link"
+                      size="small"
+                      @click="downloadPhaseMaterials(project, 'opening')"
+                    >
                   材料
-                </a-button>
-              </div>
-            </div>
+                    </a-button>
+                  </div>
+                </div>
 
             <!-- 阶段连接线 -->
             <div class="phase-connector" :class="{ 'active': project.phases.opening.status === 'completed' }">
               <div class="connector-line"></div>
               <RightOutlined class="connector-arrow" />
-            </div>
+              </div>
 
             <!-- 中期阶段 -->
             <div class="phase-card" :class="getPhaseCardClass('midterm', project.phases.midterm)">
@@ -165,41 +154,41 @@
                 <PieChartOutlined v-if="project.phases.midterm.status === 'completed'" />
                 <ClockCircleOutlined v-else-if="project.phases.midterm.status === 'in_progress'" />
                 <ExclamationCircleOutlined v-else />
-              </div>
+                </div>
               <div class="phase-content">
                 <div class="phase-title">项目中期</div>
                 <div class="phase-time">{{ project.phases.midterm.time || '未开始' }}</div>
                 <div class="phase-meeting">
                   会议：{{ project.phases.midterm.meetingDate || '未安排' }}
-                </div>
+                  </div>
                 <div class="phase-conclusion">
                   {{ project.phases.midterm.conclusion || '待定' }}
                 </div>
-              </div>
-              <div class="phase-actions">
-                <a-button
-                  type="link"
-                  size="small"
-                  @click="viewPhaseDetail(project, 'midterm')"
-                >
+                  </div>
+                  <div class="phase-actions">
+                    <a-button
+                      type="link"
+                      size="small"
+                      @click="viewPhaseDetail(project, 'midterm')"
+                    >
                   详情
-                </a-button>
-                <a-button
-                  v-if="project.phases.midterm.materials"
-                  type="link"
-                  size="small"
-                  @click="downloadPhaseMaterials(project, 'midterm')"
-                >
+                    </a-button>
+                    <a-button
+                      v-if="project.phases.midterm.materials"
+                      type="link"
+                      size="small"
+                      @click="downloadPhaseMaterials(project, 'midterm')"
+                    >
                   材料
-                </a-button>
-              </div>
-            </div>
+                    </a-button>
+                  </div>
+                </div>
 
             <!-- 阶段连接线 -->
             <div class="phase-connector" :class="{ 'active': project.phases.midterm.status === 'completed' }">
               <div class="connector-line"></div>
               <RightOutlined class="connector-arrow" />
-            </div>
+              </div>
 
             <!-- 验收阶段 -->
             <div class="phase-card" :class="getPhaseCardClass('acceptance', project.phases.acceptance)">
@@ -207,41 +196,41 @@
                 <CheckCircleOutlined v-if="project.phases.acceptance.status === 'completed'" />
                 <ClockCircleOutlined v-else-if="project.phases.acceptance.status === 'in_progress'" />
                 <ExclamationCircleOutlined v-else />
-              </div>
+                </div>
               <div class="phase-content">
                 <div class="phase-title">项目验收</div>
                 <div class="phase-time">{{ project.phases.acceptance.time || '未开始' }}</div>
                 <div class="phase-meeting">
                   会议：{{ project.phases.acceptance.meetingDate || '未安排' }}
-                </div>
+                  </div>
                 <div class="phase-conclusion">
                   {{ project.phases.acceptance.conclusion || '待定' }}
                 </div>
-              </div>
-              <div class="phase-actions">
-                <a-button
-                  type="link"
-                  size="small"
-                  @click="viewPhaseDetail(project, 'acceptance')"
-                >
+                  </div>
+                  <div class="phase-actions">
+                    <a-button
+                      type="link"
+                      size="small"
+                      @click="viewPhaseDetail(project, 'acceptance')"
+                    >
                   详情
-                </a-button>
-                <a-button
-                  v-if="project.phases.acceptance.materials"
-                  type="link"
-                  size="small"
-                  @click="downloadPhaseMaterials(project, 'acceptance')"
-                >
+                    </a-button>
+                    <a-button
+                      v-if="project.phases.acceptance.materials"
+                      type="link"
+                      size="small"
+                      @click="downloadPhaseMaterials(project, 'acceptance')"
+                    >
                   材料
-                </a-button>
-              </div>
-            </div>
+                    </a-button>
+                  </div>
+                </div>
 
             <!-- 阶段连接线 -->
             <div class="phase-connector" :class="{ 'active': project.phases.acceptance.status === 'completed' }">
               <div class="connector-line"></div>
               <RightOutlined class="connector-arrow" />
-            </div>
+        </div>
 
             <!-- 相关成果 -->
             <div class="phase-card achievements-card" :class="getAchievementsCardClass(project)">
@@ -253,7 +242,7 @@
                 <div class="phase-title">相关成果</div>
                 <div class="phase-time">
                   {{ project.achievements ? project.achievements.length : 0 }} 项成果
-                </div>
+              </div>
                 <div class="achievements-list">
                   <div 
                     v-if="project.achievements && project.achievements.length > 0"
@@ -261,10 +250,10 @@
                   >
                     <div v-for="(achievement, index) in project.achievements.slice(0, 2)" :key="index" class="achievement-item">
                       {{ achievement.title }}
-                    </div>
+              </div>
                     <div v-if="project.achievements.length > 2" class="more-achievements">
                       还有 {{ project.achievements.length - 2 }} 项成果...
-                    </div>
+              </div>
                   </div>
                   <div v-else class="no-achievements">
                     暂无绑定成果
@@ -413,7 +402,7 @@
         </div>
       </div>
     </a-modal>
-  </div>
+  </PageContainer>
 </template>
 
 <script setup>
@@ -435,6 +424,7 @@ import {
   TrophyOutlined
 } from '@ant-design/icons-vue'
 import { message } from 'ant-design-vue'
+import PageContainer from '@/components/PageContainer.vue'
 
 // 查询表单
 const queryForm = ref({

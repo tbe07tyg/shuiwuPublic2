@@ -1,15 +1,10 @@
 <template>
-  <div class="requirements-management">
-    <!-- 页面头部 -->
-    <div class="page-header">
-      <div class="header-content">
-        <h1 class="page-title">
-          <FileTextOutlined />
-          需求池管理
-        </h1>
-        <p class="page-desc">项目调研的起点，收集和管理各类研发需求</p>
-      </div>
-      <div class="header-actions">
+  <PageContainer
+    title="需求池管理"
+    description="项目调研的起点，收集和管理各类研发需求">
+    
+    <!-- 页面操作区 -->
+    <template #actions>
         <a-button type="primary" @click="showAddModal = true">
           <PlusOutlined />
           新增需求
@@ -18,8 +13,7 @@
           <DownloadOutlined />
           导出需求
         </a-button>
-      </div>
-    </div>
+    </template>
 
     <!-- 筛选和统计区域 -->
     <div class="filter-section">
@@ -169,6 +163,7 @@
         </template>
       </a-table>
     </div>
+  </PageContainer>
 
     <!-- 新增/编辑需求弹窗 -->
     <RequirementModal
@@ -191,7 +186,6 @@
         @start-research="startResearch"
       />
     </a-drawer>
-  </div>
 </template>
 
 <script setup>
@@ -207,6 +201,7 @@ import {
 import RequirementCard from '@/components/research/RequirementCard.vue'
 import RequirementModal from '@/components/research/RequirementModal.vue'
 import RequirementDetail from '@/components/research/RequirementDetail.vue'
+import PageContainer from '@/components/PageContainer.vue'
 
 const router = useRouter()
 

@@ -8,24 +8,18 @@
  */
 -->
 <template>
-  <div class="research-records">
-    <!-- 页面头部区域 -->
-    <div class="page-header">
-      <div class="header-left">
-        <h1 class="page-title">📊 调研记录</h1>
-        <p class="page-desc">项目调研全过程记录，追踪进度查看结果</p>
-      </div>
-      <div class="header-right">
-        <a-button type="primary" @click="showAddRecordDialog">
-          <PlusOutlined />
-          新建调研记录
-        </a-button>
-        <a-button type="primary" ghost>
-          <DownloadOutlined />
-          📊 导出记录
-        </a-button>
-      </div>
-    </div>
+  <PageContainer title="📊 调研记录" description="项目调研全过程记录，追踪进度查看结果">
+    <!-- 操作按钮区域 -->
+    <template #actions>
+      <a-button type="primary" @click="showAddRecordDialog">
+        <PlusOutlined />
+        新建调研记录
+      </a-button>
+      <a-button type="primary" ghost>
+        <DownloadOutlined />
+        📊 导出记录
+      </a-button>
+    </template>
 
     <!-- 筛选统计区域 -->
     <div class="filter-section">
@@ -507,13 +501,14 @@
         </a-timeline>
         </div>
     </a-modal>
-  </div>
+  </PageContainer>
 </template>
 
 <script setup>
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { message } from 'ant-design-vue'
 import dayjs from 'dayjs'
+import PageContainer from '@/components/PageContainer.vue'
 import {
   DownloadOutlined,
   SearchOutlined,
@@ -1271,8 +1266,6 @@ const handleFilterChange = () => {
   // 触发重新计算filteredRecords
 }
 
-
-
 // 查看调研记录详情
 const showRecordDetail = (recordId) => {
   const record = researchRecords.value.find(r => r.id === recordId)
@@ -1333,50 +1326,9 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/**
- * 页面容器样式
+/** 
+ * 所有页面默认样式已由PageContainer提供
  */
-.research-records {
-  min-height: 100vh;
-  background: #f5f8ff;
-  padding: 24px;
-}
-
-/**
- * 页面头部样式
- */
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
-  padding: 20px;
-  background: #ffffff;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.header-left {
-  flex: 1;
-}
-
-.page-title {
-  font-size: 28px;
-  font-weight: 600;
-  color: #234fa2;
-  margin: 0 0 8px 0;
-}
-
-.page-desc {
-  font-size: 14px;
-  color: #666;
-  margin: 0;
-}
-
-.header-right {
-  display: flex;
-  gap: 12px;
-}
 
 /**
  * 筛选统计区域样式
@@ -1652,20 +1604,6 @@ onMounted(() => {
  * 响应式设计
  */
 @media (max-width: 768px) {
-  .research-records {
-    padding: 16px;
-  }
-
-  .page-header {
-    flex-direction: column;
-    gap: 16px;
-    text-align: center;
-  }
-
-  .header-right {
-    flex-wrap: wrap;
-    justify-content: center;
-  }
 
   .filter-row {
     justify-content: center;

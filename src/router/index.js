@@ -59,30 +59,44 @@ const routes = [
       },
 
       
-      // 项目立项模块路由 (使用占位组件)
+      // 项目立项模块路由 (v3.0角色分离版本)
+      // 申报单位角色路由
       {
-        path: 'approval/materials',
-        name: 'ApprovalMaterials',
-        component: () => import('@/views/approval/materials/index.vue')
+        path: 'approval/applicant/manage',
+        name: 'ApprovalApplicantManage',
+        component: () => import('@/views/approval/applicant/manage.vue'),
+        meta: {
+          title: '申请管理',
+          icon: 'FolderOutlined'
+        }
       },
       {
-        path: 'approval/review',
-        name: 'ApprovalReview',
-        component: () => import('@/views/approval/review/index.vue')
-      },
-      {
-        path: 'approval/decision',
-        name: 'ApprovalDecision',
-        component: () => import('@/views/approval/decision/index.vue')
+        path: 'approval/applicant/submit',
+        name: 'ApprovalApplicantSubmit',
+        component: () => import('@/views/approval/applicant/submit.vue'),
+        meta: {
+          title: '提交立项',
+          icon: 'PlusOutlined'
+        }
       },
 
+      // 管理角色路由
       {
-        path: 'approval/center',
-        name: 'ApprovalCenter',
-        component: () => import('@/views/approval/index.vue'),
+        path: 'approval/management/center',
+        name: 'ApprovalManagementCenter',
+        component: () => import('@/views/approval/management/center.vue'),
         meta: {
-          title: '立项管理中心',
-          icon: 'FileTextOutlined'
+          title: '管理中心',
+          icon: 'AppstoreOutlined'
+        }
+      },
+      {
+        path: 'approval/management/conclusion',
+        name: 'ApprovalManagementConclusion',
+        component: () => import('@/views/approval/management/conclusion.vue'),
+        meta: {
+          title: '会议管理',
+          icon: 'ScheduleOutlined'
         }
       },
       
@@ -124,6 +138,50 @@ const routes = [
         }
       },
 
+      // 项目开题整合页面 - 新增
+      {
+        path: 'implementation/opening',
+        name: 'ImplementationOpening',
+        component: () => import('@/views/implementation/opening/index.vue'),
+        meta: {
+          title: '项目开题',
+          icon: 'RocketOutlined'
+        }
+      },
+
+      // 项目中期整合页面 - 新增
+      {
+        path: 'implementation/midterm',
+        name: 'ImplementationMidterm',
+        component: () => import('@/views/implementation/midterm/index.vue'),
+        meta: {
+          title: '项目中期',
+          icon: 'PieChartOutlined'
+        }
+      },
+
+      // 项目立项整合页面 - 新增
+      {
+        path: 'implementation/approval',
+        name: 'ImplementationApproval',
+        component: () => import('@/views/implementation/approval/index.vue'),
+        meta: {
+          title: '项目立项',
+          icon: 'AuditOutlined'
+        }
+      },
+
+      // 项目验收整合页面 - 新增
+      {
+        path: 'implementation/acceptance',
+        name: 'ImplementationAcceptance',
+        component: () => import('@/views/implementation/acceptance/index.vue'),
+        meta: {
+          title: '项目验收',
+          icon: 'CheckCircleOutlined'
+        }
+      },
+
       {
         path: 'implementation/center',
         name: 'ImplementationCenter',
@@ -140,6 +198,104 @@ const routes = [
         meta: {
           title: '节点模板库',
           icon: 'AppstoreOutlined'
+        }
+      },
+      
+      // 项目开题模块路由 (与项目验收结构相同)
+      // 申报单位角色路由
+      {
+        path: 'opening/application/manage',
+        name: 'OpeningApplicationManage',
+        component: () => import('@/views/opening/applicant/manage.vue'),
+        meta: {
+          title: '申请管理',
+          icon: 'FolderOutlined'
+        }
+      },
+      {
+        path: 'opening/application/submit',
+        name: 'OpeningApplicationSubmit',
+        component: () => import('@/views/opening/applicant/submit.vue'),
+        meta: {
+          title: '提交开题',
+          icon: 'PlusOutlined'
+        }
+      },
+      {
+        path: 'opening/progress/query',
+        name: 'OpeningProgressQuery',
+        component: () => import('@/views/opening/applicant/progress.vue'),
+        meta: {
+          title: '进度查询',
+          icon: 'SearchOutlined'
+        }
+      },
+      // 管理角色路由
+      {
+        path: 'opening/management/center',
+        name: 'OpeningManagementCenter',
+        component: () => import('@/views/opening/management/center.vue'),
+        meta: {
+          title: '管理中心',
+          icon: 'AppstoreOutlined'
+        }
+      },
+      {
+        path: 'opening/meeting/conclusion',
+        name: 'OpeningMeetingConclusion',
+        component: () => import('@/views/opening/management/conclusion.vue'),
+        meta: {
+          title: '会议管理',
+          icon: 'ScheduleOutlined'
+        }
+      },
+      
+      // 项目中期模块路由 (与项目验收结构相同)
+      // 申报单位角色路由
+      {
+        path: 'midterm/application/manage',
+        name: 'MidtermApplicationManage',
+        component: () => import('@/views/midterm/applicant/manage.vue'),
+        meta: {
+          title: '申请管理',
+          icon: 'FolderOutlined'
+        }
+      },
+      {
+        path: 'midterm/application/submit',
+        name: 'MidtermApplicationSubmit',
+        component: () => import('@/views/midterm/applicant/submit.vue'),
+        meta: {
+          title: '提交中期',
+          icon: 'PlusOutlined'
+        }
+      },
+      {
+        path: 'midterm/progress/query',
+        name: 'MidtermProgressQuery',
+        component: () => import('@/views/midterm/applicant/progress.vue'),
+        meta: {
+          title: '进度查询',
+          icon: 'SearchOutlined'
+        }
+      },
+      // 管理角色路由
+      {
+        path: 'midterm/management/center',
+        name: 'MidtermManagementCenter',
+        component: () => import('@/views/midterm/management/center.vue'),
+        meta: {
+          title: '管理中心',
+          icon: 'AppstoreOutlined'
+        }
+      },
+      {
+        path: 'midterm/meeting/conclusion',
+        name: 'MidtermMeetingConclusion',
+        component: () => import('@/views/midterm/management/conclusion.vue'),
+        meta: {
+          title: '会议管理',
+          icon: 'ScheduleOutlined'
         }
       },
       
@@ -244,6 +400,16 @@ const routes = [
         name: 'Settings',
         component: () => import('@/views/settings/index.vue')
       },
+      // 材料提交模板维护
+      {
+        path: 'settings/material-template',
+        name: 'MaterialTemplate',
+        component: () => import('@/views/settings/material-template.vue'),
+        meta: {
+          title: '材料提交模板维护',
+          icon: 'FileTextOutlined'
+        }
+      },
       {
         path: 'preview',
         name: 'Preview',
@@ -252,37 +418,37 @@ const routes = [
       {
         path: 'implementation/opening/submit',
         name: 'ImplementationOpeningSubmit',
-        component: () => import('@/views/implementation/opening/Submit.vue'),
+        component: () => import('@/views/opening/applicant/submit.vue'),
         meta: { title: '项目开题-材料提交' }
       },
       {
         path: 'implementation/opening/meeting',
         name: 'ImplementationOpeningMeeting',
-        component: () => import('@/views/implementation/opening/Meeting.vue'),
+        component: () => import('@/views/opening/management/conclusion.vue'),
         meta: { title: '项目开题-组织会议' }
       },
       {
         path: 'implementation/midterm/submit',
         name: 'ImplementationMidtermSubmit',
-        component: () => import('@/views/implementation/midterm/Submit.vue'),
+        component: () => import('@/views/midterm/applicant/submit.vue'),
         meta: { title: '项目中期-材料提交' }
       },
       {
         path: 'implementation/midterm/meeting',
         name: 'ImplementationMidtermMeeting',
-        component: () => import('@/views/implementation/midterm/Meeting.vue'),
+        component: () => import('@/views/midterm/management/conclusion.vue'),
         meta: { title: '项目中期-组织会议' }
       },
       {
         path: 'implementation/acceptance/submit',
         name: 'ImplementationAcceptanceSubmit',
-        component: () => import('@/views/implementation/acceptance/Submit.vue'),
+        component: () => import('@/views/acceptance/applicant/submit.vue'),
         meta: { title: '项目验收-材料提交' }
       },
       {
         path: 'implementation/acceptance/meeting',
         name: 'ImplementationAcceptanceMeeting',
-        component: () => import('@/views/implementation/acceptance/Meeting.vue'),
+        component: () => import('@/views/acceptance/management/conclusion.vue'),
         meta: { title: '项目验收-组织会议' }
       },
       {

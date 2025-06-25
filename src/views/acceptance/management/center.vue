@@ -30,47 +30,69 @@
 
     <!-- 统计概览 -->
     <div class="stats-overview">
-      <a-row :gutter="24">
-        <a-col :xs="24" :sm="12" :md="6">
-          <div class="stat-card pending">
+      <a-row :gutter="16">
+        <a-col :xs="12" :sm="8" :md="6" :lg="4" :xl="4">
+          <div class="stat-card pending" @click="handleStatCardClick('material_reviewing')">
             <div class="stat-icon">
-              <ClockCircleOutlined />
+              <FileTextOutlined />
             </div>
             <div class="stat-content">
-              <div class="stat-number">{{ stats.pendingReview }}</div>
-              <div class="stat-label">待审核材料</div>
+              <div class="stat-number">{{ stats.materialReviewing }}</div>
+              <div class="stat-label">材料审核中</div>
             </div>
           </div>
         </a-col>
-        <a-col :xs="24" :sm="12" :md="6">
-          <div class="stat-card reviewing">
+        <a-col :xs="12" :sm="8" :md="6" :lg="4" :xl="4">
+          <div class="stat-card reviewing" @click="handleStatCardClick('meeting_preparing')">
             <div class="stat-icon">
               <CalendarOutlined />
             </div>
             <div class="stat-content">
-              <div class="stat-number">{{ stats.pendingMeeting }}</div>
-              <div class="stat-label">待组织会议</div>
+              <div class="stat-number">{{ stats.meetingPreparing }}</div>
+              <div class="stat-label">会议待组织</div>
             </div>
           </div>
         </a-col>
-        <a-col :xs="24" :sm="12" :md="6">
-          <div class="stat-card completed">
+        <a-col :xs="12" :sm="8" :md="6" :lg="4" :xl="4">
+          <div class="stat-card scheduled" @click="handleStatCardClick('meeting_scheduled')">
+            <div class="stat-icon">
+              <ClockCircleOutlined />
+            </div>
+            <div class="stat-content">
+              <div class="stat-number">{{ stats.meetingScheduled }}</div>
+              <div class="stat-label">会议已安排</div>
+            </div>
+          </div>
+        </a-col>
+        <a-col :xs="12" :sm="8" :md="6" :lg="4" :xl="4">
+          <div class="stat-card completed" @click="handleStatCardClick('acceptance_passed')">
             <div class="stat-icon">
               <CheckCircleOutlined />
             </div>
             <div class="stat-content">
-              <div class="stat-number">{{ stats.passed }}</div>
+              <div class="stat-number">{{ stats.acceptancePassed }}</div>
               <div class="stat-label">验收通过</div>
             </div>
           </div>
         </a-col>
-        <a-col :xs="24" :sm="12" :md="6">
-          <div class="stat-card rejected">
+        <a-col :xs="12" :sm="8" :md="6" :lg="4" :xl="4">
+          <div class="stat-card conditional" @click="handleStatCardClick('acceptance_conditional')">
+            <div class="stat-icon">
+              <BulbOutlined />
+            </div>
+            <div class="stat-content">
+              <div class="stat-number">{{ stats.acceptanceConditional }}</div>
+              <div class="stat-label">有条件通过</div>
+            </div>
+          </div>
+        </a-col>
+        <a-col :xs="12" :sm="8" :md="6" :lg="4" :xl="4">
+          <div class="stat-card rejected" @click="handleStatCardClick('acceptance_failed')">
             <div class="stat-icon">
               <CloseCircleOutlined />
             </div>
             <div class="stat-content">
-              <div class="stat-number">{{ stats.rejected }}</div>
+              <div class="stat-number">{{ stats.acceptanceFailed }}</div>
               <div class="stat-label">验收未通过</div>
             </div>
           </div>
@@ -129,70 +151,7 @@
       </div>
     </div>
 
-    <!-- 待办事项和管理操作区域 -->
-    <a-row :gutter="24" style="margin-bottom: 24px;">
-      <!-- 待办事项 -->
-      <a-col :xs="24" :lg="12">
-        <div class="content-card">
-          <div class="card-header">
-            <h3>
-              <BellOutlined />
-              待办事项
-              <a-badge :count="todoList.length" />
-            </h3>
-            <a-button type="link" size="small" @click="handleViewAllTodo">
-              查看全部
-            </a-button>
-          </div>
-          <div class="todo-list">
-            <div v-for="item in todoList.slice(0, 5)" :key="item.id" class="todo-item">
-              <div class="todo-priority" :class="item.priority"></div>
-              <div class="todo-content">
-                <div class="todo-title">{{ item.title }}</div>
-                <div class="todo-meta">
-                  <span class="todo-project">{{ item.project }}</span>
-                  <span class="todo-time">{{ formatTime(item.deadline) }}</span>
-                </div>
-              </div>
-              <div class="todo-actions">
-                <a-button type="text" size="small" @click="handleTodoAction(item)">
-                  处理
-                </a-button>
-              </div>
-            </div>
-            <div v-if="todoList.length === 0" class="empty-todo">
-              <SmileOutlined />
-              <p>暂无待办事项</p>
-            </div>
-          </div>
-        </div>
-      </a-col>
 
-      <!-- 管理操作 -->
-      <a-col :xs="24" :lg="12">
-        <div class="content-card">
-          <div class="card-header">
-            <h3>
-              <SettingOutlined />
-              管理操作
-            </h3>
-          </div>
-          <div class="management-actions">
-            <a-space direction="vertical" style="width: 100%">
-
-              <a-button @click="goToProjectArchive" block size="large">
-                <DatabaseOutlined />
-                项目历史档案
-              </a-button>
-              <a-button @click="goToMeetingConclusion" block size="large">
-                <ScheduleOutlined />
-                会议结论管理
-              </a-button>
-            </a-space>
-          </div>
-        </div>
-      </a-col>
-    </a-row>
 
     <!-- 项目审核管理区域 - 全宽对齐统计区域 -->
     <div class="content-card">
@@ -573,7 +532,7 @@
     <!-- 会议组织弹窗 -->
     <a-modal
       v-model:open="meetingModalVisible"
-      title="组织验收会议"
+      title="安排验收会议"
       width="700px"
       @ok="handleMeetingSubmit"
       @cancel="handleMeetingCancel"
@@ -609,17 +568,91 @@
             </a-radio-group>
           </a-form-item>
 
-          <a-form-item label="参会专家">
+          <a-form-item label="会议主持人" required>
+            <a-select
+              v-model:value="meetingForm.hosts"
+              mode="tags"
+              placeholder="选择或输入主持人（可选择多个或手动输入）"
+              style="width: 100%"
+              :options="hostOptions"
+              :filter-option="filterHostOption"
+            >
+              <template #tagRender="{ label, onClose }">
+                <a-tag 
+                  color="blue" 
+                  closable 
+                  @close="onClose"
+                  style="margin-right: 4px; margin-bottom: 4px;"
+                >
+                  {{ label }}
+                </a-tag>
+              </template>
+            </a-select>
+            <div class="form-tip">可从下拉列表选择或直接输入姓名，支持多个主持人</div>
+          </a-form-item>
+
+          <a-form-item label="参会专家" required>
             <a-select
               v-model:value="meetingForm.experts"
-              mode="multiple"
-              placeholder="选择参会专家"
+              mode="tags"
+              placeholder="选择或输入参会专家（可选择多个或手动输入）"
               style="width: 100%"
+              :options="expertOptions"
+              :filter-option="filterExpertOption"
             >
-              <a-select-option v-for="expert in expertList" :key="expert.id" :value="expert.id">
-                {{ expert.name }} - {{ expert.title }}
-              </a-select-option>
+              <template #tagRender="{ label, onClose }">
+                <a-tag 
+                  color="green" 
+                  closable 
+                  @close="onClose"
+                  style="margin-right: 4px; margin-bottom: 4px;"
+                >
+                  {{ label }}
+                </a-tag>
+              </template>
             </a-select>
+            <div class="form-tip">可从下拉列表选择或直接输入专家姓名，支持多个专家</div>
+          </a-form-item>
+
+          <a-form-item label="会议资料">
+            <div class="meeting-materials">
+              <a-upload
+                v-model:file-list="meetingForm.materials"
+                :before-upload="beforeUploadMaterial"
+                :on-remove="removeMaterial"
+                multiple
+                accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.zip,.rar"
+              >
+                <a-button>
+                  <UploadOutlined />
+                  上传会议资料
+                </a-button>
+              </a-upload>
+              <div class="upload-tip">
+                支持上传PDF、Word、PPT、Excel、压缩包等格式，单个文件不超过50MB
+              </div>
+              
+              <!-- 资料列表展示 -->
+              <div v-if="meetingForm.materials && meetingForm.materials.length > 0" class="materials-list">
+                <div 
+                  v-for="(file, index) in meetingForm.materials" 
+                  :key="index"
+                  class="material-item"
+                >
+                  <FileOutlined class="file-icon" />
+                  <span class="file-name">{{ file.name }}</span>
+                  <span class="file-size">{{ formatFileSize(file.size) }}</span>
+                  <a-button 
+                    type="link" 
+                    danger 
+                    size="small"
+                    @click="removeMaterialByIndex(index)"
+                  >
+                    删除
+                  </a-button>
+                </div>
+              </div>
+            </div>
           </a-form-item>
 
           <a-form-item label="会议说明">
@@ -639,7 +672,7 @@
     <a-modal
       v-model:open="resultModalVisible"
       title="录入验收结论"
-      width="600px"
+      width="800px"
       @ok="handleResultSubmit"
       @cancel="handleResultCancel"
     >
@@ -647,6 +680,9 @@
         <div class="project-meeting-info">
           <h4>会议信息</h4>
           <a-descriptions :column="2" bordered size="small">
+            <a-descriptions-item label="项目名称" :span="2">
+              {{ selectedProject.name }}
+            </a-descriptions-item>
             <a-descriptions-item label="会议时间">
               {{ selectedProject.meetingInfo?.time || '会议时间待确定' }}
             </a-descriptions-item>
@@ -700,6 +736,49 @@
               show-count
               :maxlength="300"
             />
+          </a-form-item>
+
+          <a-form-item label="结论相关文件">
+            <div class="conclusion-files">
+              <a-upload
+                v-model:file-list="resultForm.conclusionFiles"
+                :before-upload="beforeUploadResultFile"
+                :on-remove="removeResultFile"
+                multiple
+                accept=".pdf,.doc,.docx,.xls,.xlsx"
+              >
+                <a-button>
+                  <UploadOutlined />
+                  上传结论文件
+                </a-button>
+              </a-upload>
+              
+              <!-- 文件列表展示 -->
+              <div v-if="resultForm.conclusionFiles.length > 0" class="files-list">
+                <div 
+                  v-for="(file, index) in resultForm.conclusionFiles" 
+                  :key="index"
+                  class="file-item"
+                >
+                  <FileOutlined class="file-icon" />
+                  <span class="file-name">{{ file.name }}</span>
+                  <span class="file-size">{{ formatFileSize(file.size) }}</span>
+                  <a-button
+                    type="link"
+                    danger
+                    size="small"
+                    @click="removeResultFileByIndex(index)"
+                  >
+                    删除
+                  </a-button>
+                </div>
+              </div>
+              <div class="upload-tip">
+                <small style="color: #999;">
+                  支持上传 PDF、Word、Excel 文件，单个文件大小不超过 20MB
+                </small>
+              </div>
+            </div>
           </a-form-item>
         </a-form>
       </div>
@@ -1124,15 +1203,12 @@ import {
   CalendarOutlined,
   CheckCircleOutlined,
   CloseCircleOutlined,
-  BellOutlined,
-  SettingOutlined,
   FileSearchOutlined,
-  DatabaseOutlined,
-  ScheduleOutlined,
   UnorderedListOutlined,
-  SmileOutlined,
+  UploadOutlined,
   BulbOutlined,
   FileOutlined,
+  FileTextOutlined,
   EyeOutlined,
   DownloadOutlined,
   ExclamationCircleOutlined
@@ -1288,35 +1364,23 @@ const projects = ref([
 // 统计数据 - 基于项目列表动态计算
 const stats = computed(() => {
   const materialReviewing = projects.value.filter(p => p.currentStatus === 'material_reviewing').length
-  const meetingPreparing = projects.value.filter(p => p.currentStatus === 'meeting_preparing' || p.currentStatus === 'meeting_scheduled').length
-  const completed = projects.value.filter(p => p.currentStatus === 'acceptance_passed').length
-  const rejected = projects.value.filter(p => p.currentStatus === 'acceptance_failed').length
+  const meetingPreparing = projects.value.filter(p => p.currentStatus === 'meeting_preparing').length
+  const meetingScheduled = projects.value.filter(p => p.currentStatus === 'meeting_scheduled').length
+  const acceptancePassed = projects.value.filter(p => p.currentStatus === 'acceptance_passed').length
+  const acceptanceConditional = projects.value.filter(p => p.currentStatus === 'acceptance_conditional').length
+  const acceptanceFailed = projects.value.filter(p => p.currentStatus === 'acceptance_failed').length
   
   return {
-    pendingReview: materialReviewing,
-    pendingMeeting: meetingPreparing,
-    passed: completed,
-    rejected: rejected
+    materialReviewing,
+    meetingPreparing,
+    meetingScheduled,
+    acceptancePassed,
+    acceptanceConditional,
+    acceptanceFailed
   }
 })
 
-// 待办事项
-const todoList = ref([
-  {
-    id: 1,
-    title: '审核智慧城市项目验收材料',
-    project: 'PROJ-2024-001',
-    deadline: '2024-01-25',
-    priority: 'high'
-  },
-  {
-    id: 2,
-    title: '组织区块链平台验收会议',
-    project: 'PROJ-2024-002',
-    deadline: '2024-01-26',
-    priority: 'medium'
-  }
-])
+
 
 // 筛选条件
 const filters = ref({
@@ -1332,6 +1396,28 @@ const expertList = ref([
   { id: 1, name: '张教授', title: '高级工程师' },
   { id: 2, name: '李博士', title: '技术专家' },
   { id: 3, name: '王主任', title: '项目管理专家' }
+])
+
+// 主持人选项
+const hostOptions = ref([
+  { value: '张教授', label: '张教授' },
+  { value: '李博士', label: '李博士' },
+  { value: '王主任', label: '王主任' },
+  { value: '陈院长', label: '陈院长' },
+  { value: '刘处长', label: '刘处长' }
+])
+
+// 专家选项
+const expertOptions = ref([
+  { value: '张教授', label: '张教授' },
+  { value: '李博士', label: '李博士' },
+  { value: '王主任', label: '王主任' },
+  { value: '陈院长', label: '陈院长' },
+  { value: '刘处长', label: '刘处长' },
+  { value: '赵专家', label: '赵专家' },
+  { value: '钱专家', label: '钱专家' },
+  { value: '孙专家', label: '孙专家' },
+  { value: '李专家', label: '李专家' }
 ])
 
 // 表格列配置
@@ -1409,7 +1495,9 @@ const meetingForm = ref({
   datetime: undefined,
   location: '',
   type: 'offline',
+  hosts: [],
   experts: [],
+  materials: [],
   description: ''
 })
 
@@ -1417,7 +1505,8 @@ const resultForm = ref({
   conclusion: 'passed',
   score: 85,
   description: '',
-  requirements: ''
+  requirements: '',
+  conclusionFiles: [] // 结论相关文件
 })
 
 const improvementReviewForm = ref({
@@ -1546,22 +1635,9 @@ const getStatusText = (status) => {
   return textMap[status] || '未知状态'
 }
 
-// 工具方法
-const formatTime = (time) => {
-  return time
-}
-
 // 事件处理方法
 const handleBatchReview = () => {
   message.info('批量审核功能')
-}
-
-const handleViewAllTodo = () => {
-  message.info('查看全部待办事项')
-}
-
-const handleTodoAction = (item) => {
-  message.info(`处理待办：${item.title}`)
 }
 
 const handleFilterChange = () => {
@@ -1570,16 +1646,6 @@ const handleFilterChange = () => {
 
 const handleSearch = () => {
   // 搜索逻辑已在计算属性中处理
-}
-
-
-
-const goToProjectArchive = () => {
-  router.push('/acceptance/project/archive')
-}
-
-const goToMeetingConclusion = () => {
-  router.push('/acceptance/meeting/conclusion')
 }
 
 // 项目操作方法
@@ -1639,7 +1705,8 @@ const handleInputResult = (record) => {
     conclusion: 'passed',
     score: 85,
     description: '',
-    requirements: ''
+    requirements: '',
+    conclusionFiles: [] // 结论相关文件
   }
   resultModalVisible.value = true
 }
@@ -1800,7 +1867,117 @@ const handleMeetingCancel = () => {
   meetingModalVisible.value = false
 }
 
+// 会议弹窗专用方法
+const filterHostOption = (input, option) => {
+  return option.label.toLowerCase().indexOf(input.toLowerCase()) >= 0
+}
+
+const filterExpertOption = (input, option) => {
+  return option.label.toLowerCase().indexOf(input.toLowerCase()) >= 0
+}
+
+const beforeUploadMaterial = (file) => {
+  const isValidType = [
+    'application/pdf',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/vnd.ms-powerpoint',
+    'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'application/zip',
+    'application/x-rar-compressed'
+  ].includes(file.type)
+  
+  if (!isValidType) {
+    message.error('请上传PDF、Word、PPT、Excel或压缩包格式的文件！')
+    return false
+  }
+  
+  const isLt50M = file.size / 1024 / 1024 < 50
+  if (!isLt50M) {
+    message.error('文件大小不能超过50MB！')
+    return false
+  }
+  
+  return false // 阻止自动上传
+}
+
+const removeMaterial = (file) => {
+  const index = meetingForm.value.materials.findIndex(item => item.uid === file.uid)
+  if (index > -1) {
+    meetingForm.value.materials.splice(index, 1)
+  }
+}
+
+const removeMaterialByIndex = (index) => {
+  meetingForm.value.materials.splice(index, 1)
+}
+
+const formatFileSize = (size) => {
+  if (size < 1024) {
+    return size + ' B'
+  } else if (size < 1024 * 1024) {
+    return Math.round(size / 1024) + ' KB'
+  } else {
+    return Math.round(size / (1024 * 1024)) + ' MB'
+  }
+}
+
+// 结论文件上传方法
+const beforeUploadResultFile = (file) => {
+  const isLt20M = file.size / 1024 / 1024 < 20
+  if (!isLt20M) {
+    message.error('文件大小不能超过20MB!')
+    return false
+  }
+  
+  const allowedTypes = [
+    'application/pdf',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+  ]
+  
+  if (!allowedTypes.includes(file.type) && !file.name.match(/\.(pdf|doc|docx|xls|xlsx)$/i)) {
+    message.error('只支持PDF、Word、Excel格式!')
+    return false
+  }
+  
+  resultForm.value.conclusionFiles.push(file)
+  message.success(`文件 ${file.name} 添加成功`)
+  
+  return false
+}
+
+const removeResultFile = (file) => {
+  const index = resultForm.value.conclusionFiles.findIndex(item => item.uid === file.uid)
+  if (index > -1) {
+    resultForm.value.conclusionFiles.splice(index, 1)
+  }
+}
+
+const removeResultFileByIndex = (index) => {
+  resultForm.value.conclusionFiles.splice(index, 1)
+  message.success('文件删除成功')
+}
+
 const handleResultSubmit = () => {
+  // 表单验证
+  if (!resultForm.value.conclusion) {
+    message.error('请选择验收结论')
+    return
+  }
+  if (!resultForm.value.description) {
+    message.error('请填写结论说明')
+    return
+  }
+  if (resultForm.value.conclusion !== 'passed' && !resultForm.value.requirements) {
+    message.error('请填写整改要求')
+    return
+  }
+
   message.success('验收结论录入完成')
   resultModalVisible.value = false
   
@@ -1833,6 +2010,7 @@ const handleResultSubmit = () => {
         score: resultForm.value.score,
         description: resultForm.value.description,
         requirements: resultForm.value.requirements,
+        conclusionFiles: resultForm.value.conclusionFiles,
         time: new Date().toISOString().split('T')[0]
       }
     }
@@ -2172,6 +2350,15 @@ const toggleFlowDescription = () => {
   showFlowDescription.value = !showFlowDescription.value
 }
 
+// 处理统计卡片点击筛选
+const handleStatCardClick = (filterType) => {
+  // 清除关键词筛选
+  filters.value.keyword = ''
+  
+  // 直接设置状态筛选
+  filters.value.status = filterType
+}
+
 // 生命周期
 onMounted(() => {
   // 初始化数据
@@ -2238,11 +2425,44 @@ onMounted(() => {
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   transition: all 0.3s ease;
+  cursor: pointer;
+  border: 1px solid transparent;
+  user-select: none;
 }
 
 .stat-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+  border-color: rgba(35, 79, 162, 0.2);
+}
+
+.stat-card:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.stat-card.pending:hover {
+  background: linear-gradient(135deg, #fff7e6 0%, #fff2e6 100%);
+}
+
+.stat-card.reviewing:hover {
+  background: linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%);
+}
+
+.stat-card.scheduled:hover {
+  background: linear-gradient(135deg, #e6fffb 0%, #b5f5ec 100%);
+}
+
+.stat-card.completed:hover {
+  background: linear-gradient(135deg, #f6ffed 0%, #efffef 100%);
+}
+
+.stat-card.conditional:hover {
+  background: linear-gradient(135deg, #fffbe6 0%, #fff7e6 100%);
+}
+
+.stat-card.rejected:hover {
+  background: linear-gradient(135deg, #fff2f0 0%, #fff1f0 100%);
 }
 
 .stat-icon {
@@ -2262,13 +2482,23 @@ onMounted(() => {
 }
 
 .stat-card.reviewing .stat-icon {
-  background: #f9f0ff;
-  color: #722ed1;
+  background: #e6f7ff;
+  color: #1890ff;
+}
+
+.stat-card.scheduled .stat-icon {
+  background: #e6fffb;
+  color: #13c2c2;
 }
 
 .stat-card.completed .stat-icon {
   background: #f6ffed;
   color: #52c41a;
+}
+
+.stat-card.conditional .stat-icon {
+  background: #fffbe6;
+  color: #faad14;
 }
 
 .stat-card.rejected .stat-icon {
@@ -2330,72 +2560,7 @@ onMounted(() => {
   gap: 12px;
 }
 
-/* 待办事项样式 */
-.todo-list {
-  padding: 16px 24px;
-}
 
-.todo-item {
-  display: flex;
-  align-items: center;
-  padding: 12px 0;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.todo-item:last-child {
-  border-bottom: none;
-}
-
-.todo-priority {
-  width: 4px;
-  height: 40px;
-  border-radius: 2px;
-  margin-right: 12px;
-}
-
-.todo-priority.high {
-  background: #ff4d4f;
-}
-
-.todo-priority.medium {
-  background: #fa8c16;
-}
-
-.todo-priority.low {
-  background: #52c41a;
-}
-
-.todo-content {
-  flex: 1;
-}
-
-.todo-title {
-  font-weight: 500;
-  color: #262626;
-  margin-bottom: 4px;
-}
-
-.todo-meta {
-  display: flex;
-  gap: 12px;
-  font-size: 12px;
-  color: #8c8c8c;
-}
-
-.empty-todo {
-  text-align: center;
-  padding: 40px 0;
-  color: #8c8c8c;
-}
-
-.empty-todo p {
-  margin: 8px 0 0 0;
-}
-
-/* 管理操作样式 */
-.management-actions {
-  padding: 20px 24px;
-}
 
 /* 流程说明样式 */
 .flow-description {
@@ -3084,7 +3249,67 @@ onMounted(() => {
   .detail-modal {
     max-height: 60vh;
   }
-  
+}
+
+/* 会议弹窗表单提示样式 */
+.form-tip {
+  font-size: 12px;
+  color: #8c8c8c;
+  margin-top: 4px;
+  line-height: 1.4;
+}
+
+/* 会议资料上传样式 */
+.meeting-materials {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.upload-tip {
+  font-size: 12px;
+  color: #8c8c8c;
+  margin-top: 8px;
+}
+
+.materials-list {
+  margin-top: 16px;
+  padding: 16px;
+  background: #fafafa;
+  border-radius: 6px;
+  border: 1px solid #f0f0f0;
+}
+
+.materials-list .material-item {
+  display: flex;
+  align-items: center;
+  padding: 8px 0;
+  gap: 12px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.materials-list .material-item:last-child {
+  border-bottom: none;
+}
+
+.materials-list .file-icon {
+  color: #1890ff;
+  font-size: 16px;
+}
+
+.materials-list .file-name {
+  flex: 1;
+  font-weight: 500;
+  color: #262626;
+}
+
+.materials-list .file-size {
+  font-size: 12px;
+  color: #8c8c8c;
+}
+
+/* 响应式设计继续 */
+@media (max-width: 768px) {
   .detail-section .material-item {
     flex-direction: column;
     align-items: stretch;
@@ -3136,4 +3361,45 @@ onMounted(() => {
   border-top: 1px solid #f0f0f0;
   text-align: right;
 }
-</style> 
+
+/* 结论文件上传样式 */
+.conclusion-files {
+  margin-top: 16px;
+}
+
+.conclusion-files .files-list {
+  margin-top: 16px;
+  padding: 16px;
+  background: #fafafa;
+  border-radius: 6px;
+  border: 1px solid #f0f0f0;
+}
+
+.conclusion-files .file-item {
+  display: flex;
+  align-items: center;
+  padding: 8px 0;
+  gap: 12px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.conclusion-files .file-item:last-child {
+  border-bottom: none;
+}
+
+.conclusion-files .file-icon {
+  color: #1890ff;
+  font-size: 16px;
+}
+
+.conclusion-files .file-name {
+  flex: 1;
+  font-weight: 500;
+  color: #262626;
+}
+
+.conclusion-files .file-size {
+  font-size: 12px;
+  color: #8c8c8c;
+  margin-right: 8px;
+}

@@ -1,28 +1,25 @@
 <template>
-  <div class="analytics-page">
-    <!-- 页面头部区域 -->
-    <div class="page-header">
-      <div class="header-content">
-        <h1 class="page-title">📈 统计分析中心</h1>
-        <p class="page-desc">数据决策支持，绩效考核依据</p>
-      </div>
-      <div class="header-actions">
-        <a-space>
-          <a-button @click="refreshData">
-            <ReloadOutlined />
-            刷新数据
-          </a-button>
-          <a-button type="primary" @click="exportReport">
-            <DownloadOutlined />
-            导出报告
-          </a-button>
-          <a-button @click="showSettings">
-            <SettingOutlined />
-            配置
-          </a-button>
-        </a-space>
-      </div>
-    </div>
+  <PageContainer
+    title="📈 统计分析中心"
+    description="数据决策支持，绩效考核依据">
+    
+    <!-- 页面操作区 -->
+    <template #actions>
+      <a-space>
+        <a-button @click="refreshData">
+          <ReloadOutlined />
+          刷新数据
+        </a-button>
+        <a-button type="primary" @click="exportReport">
+          <DownloadOutlined />
+          导出报告
+        </a-button>
+        <a-button @click="showSettings">
+          <SettingOutlined />
+          配置
+        </a-button>
+      </a-space>
+    </template>
 
     <!-- 核心指标统计总览区域 -->
     <div class="stats-overview">
@@ -311,10 +308,10 @@
         </a-tab-pane>
       </a-tabs>
     </div>
-  </div>
+  </PageContainer>
 </template>
 
-<script>
+<script setup>
 import { ref, reactive, onMounted, nextTick } from 'vue'
 import { message } from 'ant-design-vue'
 import * as echarts from 'echarts'
@@ -325,403 +322,371 @@ import {
   CaretUpOutlined,
   CaretDownOutlined
 } from '@ant-design/icons-vue'
+import PageContainer from '@/components/PageContainer.vue'
 
-export default {
-  name: 'AnalyticsPage',
-  components: {
-    ReloadOutlined,
-    DownloadOutlined,
-    SettingOutlined,
-    CaretUpOutlined,
-    CaretDownOutlined
+// 统计数据
+const statistics = reactive({
+  // 研发投入强度相关
+  rdIntensity: 4.8,
+  rdTrend: 0.5,
+  totalRdInvestment: 12500,
+  rdTarget: 5.0,
+  
+  // 智慧水务比重相关
+  strategicRatio: 68.5,
+  strategicTrend: 3.2,
+  strategicProjects: 45,
+  
+  // 成果转化相关
+  conversionRate: 85.6,
+  conversionTrend: 2.1,
+  convertedAchievements: 156,
+  totalAchievements: 182,
+  
+  // 基础统计
+  totalProjects: 123,
+  projectsChange: 12,
+  ongoingProjects: 45,
+  ongoingChange: -3,
+  completedProjects: 70,
+  completedChange: 18,
+  overdueProjects: 8,
+  overdueChange: 2,
+  totalBudget: 2000,
+  budgetChange: 8.5,
+  usedBudget: 1500,
+  spendingRate: 75
+})
+
+const activeTab = ref('rd-detail')
+
+// 图表引用
+const rdIntensityChartRef = ref(null)
+const strategicChartRef = ref(null)
+const achievementChartRef = ref(null)
+const performanceChartRef = ref(null)
+
+// 表格数据
+const rdDetailColumns = [
+  { title: '部门', dataIndex: 'department', key: 'department' },
+  { title: '项目数', dataIndex: 'projectCount', key: 'projectCount' },
+  { title: '研发投入(万)', dataIndex: 'rdInvestment', key: 'rdInvestment' },
+  { title: '总收入(万)', dataIndex: 'totalRevenue', key: 'totalRevenue' },
+  { title: '投入强度', dataIndex: 'intensity', key: 'intensity' },
+  { title: '状态', dataIndex: 'status', key: 'status' }
+]
+
+const rdDetailData = ref([
+  {
+    key: '1',
+    department: '技术部',
+    projectCount: 28,
+    rdInvestment: 5600,
+    totalRevenue: 95000,
+    intensity: 5.9,
+    status: '达标'
   },
-  setup() {
-    // 统计数据
-    const statistics = reactive({
-      // 研发投入强度相关
-      rdIntensity: 4.8,
-      rdTrend: 0.5,
-      totalRdInvestment: 12500,
-      rdTarget: 5.0,
-      
-      // 智慧水务比重相关
-      strategicRatio: 68.5,
-      strategicTrend: 3.2,
-      strategicProjects: 45,
-      
-      // 成果转化相关
-      conversionRate: 85.6,
-      conversionTrend: 2.1,
-      convertedAchievements: 156,
-      totalAchievements: 182,
-      
-      // 基础统计
-      totalProjects: 123,
-      projectsChange: 12,
-      ongoingProjects: 45,
-      ongoingChange: -3,
-      completedProjects: 70,
-      completedChange: 18,
-      overdueProjects: 8,
-      overdueChange: 2,
-      totalBudget: 2000,
-      budgetChange: 8.5,
-      usedBudget: 1500,
-      spendingRate: 75
+  {
+    key: '2', 
+    department: '研发中心',
+    projectCount: 35,
+    rdInvestment: 4800,
+    totalRevenue: 78000,
+    intensity: 6.2,
+    status: '达标'
+  },
+  {
+    key: '3',
+    department: '创新部',
+    projectCount: 22,
+    rdInvestment: 2100,
+    totalRevenue: 56000,
+    intensity: 3.8,
+    status: '待提升'
+  }
+])
+
+const strategicDetailColumns = [
+  { title: '项目名称', dataIndex: 'projectName', key: 'projectName' },
+  { title: '水务领域', dataIndex: 'industry', key: 'industry' },
+  { title: '项目类型', dataIndex: 'isStrategic', key: 'isStrategic' },
+  { title: '投资额(万)', dataIndex: 'investment', key: 'investment' },
+  { title: '完成进度', dataIndex: 'progress', key: 'progress' },
+  { title: '负责人', dataIndex: 'manager', key: 'manager' }
+]
+
+const strategicDetailData = ref([
+  {
+    key: '1',
+    projectName: 'AI智能水质监测系统',
+    industry: '智慧水务',
+    isStrategic: true,
+    investment: 1200,
+    progress: '95%',
+    manager: '张三'
+  },
+  {
+    key: '2',
+    projectName: '智慧供水管网改造',
+    industry: '供水管网',
+    isStrategic: true, 
+    investment: 980,
+    progress: '78%',
+    manager: '李四'
+  },
+  {
+    key: '3',
+    projectName: '传统水处理设备维护',
+    industry: '污水处理',
+    isStrategic: false,
+    investment: 450,
+    progress: '100%',
+    manager: '王五'
+  },
+  {
+    key: '4',
+    projectName: '节水灌溉技术推广',
+    industry: '节水技术',
+    isStrategic: true,
+    investment: 680,
+    progress: '85%',
+    manager: '赵六'
+  },
+  {
+    key: '5',
+    projectName: '水资源调度优化平台',
+    industry: '水资源管理',
+    isStrategic: true,
+    investment: 1500,
+    progress: '60%',
+    manager: '孙七'
+  }
+])
+
+const achievementDetailColumns = [
+  { title: '成果名称', dataIndex: 'achievementName', key: 'achievementName' },
+  { title: '成果类型', dataIndex: 'type', key: 'type' },
+  { title: '转化状态', dataIndex: 'converted', key: 'converted' },
+  { title: '转化价值(万)', dataIndex: 'value', key: 'value' },
+  { title: '完成时间', dataIndex: 'completedTime', key: 'completedTime' },
+  { title: '负责人', dataIndex: 'manager', key: 'manager' }
+]
+
+const achievementDetailData = ref([
+  {
+    key: '1',
+    achievementName: '智能水质监测算法专利',
+    type: '发明专利',
+    converted: true,
+    value: 280,
+    completedTime: '2024-12-15',
+    manager: '张三'
+  },
+  {
+    key: '2',
+    achievementName: '水处理技术论文',
+    type: 'SCI论文',
+    converted: false,
+    value: 0,
+    completedTime: '2024-11-20',
+    manager: '李四'
+  },
+  {
+    key: '3',
+    achievementName: '节水设备软件著作权',
+    type: '软件著作权',
+    converted: true,
+    value: 150,
+    completedTime: '2024-10-08',
+    manager: '王五'
+  }
+])
+
+// 方法
+const refreshData = () => {
+  message.success('数据已刷新')
+  nextTick(() => {
+    initCharts()
+  })
+}
+
+const exportReport = () => {
+  message.success('报告导出中...')
+}
+
+const showSettings = () => {
+  message.info('打开配置面板')
+}
+
+const getStatusColor = (status) => {
+  const colors = {
+    '达标': 'green',
+    '待提升': 'orange',
+    '不达标': 'red'
+  }
+  return colors[status] || 'default'
+}
+
+const getAchievementTypeColor = (type) => {
+  const colors = {
+    '发明专利': 'blue',
+    'SCI论文': 'green',
+    '软件著作权': 'purple',
+    '实用新型': 'orange'
+  }
+  return colors[type] || 'default'
+}
+
+const getAchievementTypeIcon = (type) => {
+  const icons = {
+    '发明专利': '🔬',
+    'SCI论文': '📄',
+    '软件著作权': '💻',
+    '实用新型': '🔧'
+  }
+  return icons[type] || '📋'
+}
+
+// 初始化图表
+const initCharts = () => {
+  // 研发投入强度趋势图
+  if (rdIntensityChartRef.value) {
+    const rdChart = echarts.init(rdIntensityChartRef.value)
+    rdChart.setOption({
+      title: {
+        text: '研发投入强度变化趋势',
+        textStyle: { fontSize: 14 }
+      },
+      tooltip: { trigger: 'axis' },
+      xAxis: {
+        type: 'category',
+        data: ['2021Q1', '2021Q2', '2021Q3', '2021Q4', '2022Q1', '2022Q2', '2022Q3', '2022Q4', '2023Q1', '2023Q2', '2023Q3', '2023Q4']
+      },
+      yAxis: {
+        type: 'value',
+        name: '强度(%)',
+        axisLabel: { formatter: '{value}%' }
+      },
+      series: [{
+        name: '研发投入强度',
+        type: 'line',
+        data: [3.2, 3.5, 3.8, 4.1, 4.3, 4.0, 4.2, 4.5, 4.6, 4.4, 4.7, 4.8],
+        smooth: true,
+        lineStyle: { color: '#1890ff' },
+        itemStyle: { color: '#1890ff' },
+        areaStyle: { 
+          color: {
+            type: 'linear',
+            x: 0, y: 0, x2: 0, y2: 1,
+            colorStops: [
+              { offset: 0, color: 'rgba(24, 144, 255, 0.3)' },
+              { offset: 1, color: 'rgba(24, 144, 255, 0.1)' }
+            ]
+          }
+        }
+      }]
     })
+  }
 
-    const activeTab = ref('rd-detail')
-
-    // 图表引用
-    const rdIntensityChartRef = ref(null)
-    const strategicChartRef = ref(null)
-    const achievementChartRef = ref(null)
-    const performanceChartRef = ref(null)
-
-    // 表格数据
-    const rdDetailColumns = [
-      { title: '部门', dataIndex: 'department', key: 'department' },
-      { title: '项目数', dataIndex: 'projectCount', key: 'projectCount' },
-      { title: '研发投入(万)', dataIndex: 'rdInvestment', key: 'rdInvestment' },
-      { title: '总收入(万)', dataIndex: 'totalRevenue', key: 'totalRevenue' },
-      { title: '投入强度', dataIndex: 'intensity', key: 'intensity' },
-      { title: '状态', dataIndex: 'status', key: 'status' }
-    ]
-
-    const rdDetailData = ref([
-      {
-        key: '1',
-        department: '技术部',
-        projectCount: 28,
-        rdInvestment: 5600,
-        totalRevenue: 95000,
-        intensity: 5.9,
-        status: '达标'
+  // 水务项目分布图
+  if (strategicChartRef.value) {
+    const strategicChart = echarts.init(strategicChartRef.value)
+    strategicChart.setOption({
+      title: {
+        text: '水务项目领域分布',
+        textStyle: { fontSize: 14 }
       },
-      {
-        key: '2', 
-        department: '研发中心',
-        projectCount: 35,
-        rdInvestment: 4800,
-        totalRevenue: 78000,
-        intensity: 6.2,
-        status: '达标'
-      },
-      {
-        key: '3',
-        department: '创新部',
-        projectCount: 22,
-        rdInvestment: 2100,
-        totalRevenue: 56000,
-        intensity: 3.8,
-        status: '待提升'
-      }
-    ])
-
-    const strategicDetailColumns = [
-      { title: '项目名称', dataIndex: 'projectName', key: 'projectName' },
-      { title: '水务领域', dataIndex: 'industry', key: 'industry' },
-      { title: '项目类型', dataIndex: 'isStrategic', key: 'isStrategic' },
-      { title: '投资额(万)', dataIndex: 'investment', key: 'investment' },
-      { title: '完成进度', dataIndex: 'progress', key: 'progress' },
-      { title: '负责人', dataIndex: 'manager', key: 'manager' }
-    ]
-
-    const strategicDetailData = ref([
-      {
-        key: '1',
-        projectName: 'AI智能水质监测系统',
-        industry: '智慧水务',
-        isStrategic: true,
-        investment: 1200,
-        progress: '95%',
-        manager: '张三'
-      },
-      {
-        key: '2',
-        projectName: '智慧供水管网改造',
-        industry: '供水管网',
-        isStrategic: true, 
-        investment: 980,
-        progress: '78%',
-        manager: '李四'
-      },
-      {
-        key: '3',
-        projectName: '传统水处理设备维护',
-        industry: '污水处理',
-        isStrategic: false,
-        investment: 450,
-        progress: '100%',
-        manager: '王五'
-      },
-      {
-        key: '4',
-        projectName: '节水灌溉技术推广',
-        industry: '节水技术',
-        isStrategic: true,
-        investment: 680,
-        progress: '85%',
-        manager: '赵六'
-      },
-      {
-        key: '5',
-        projectName: '水资源调度优化平台',
-        industry: '水资源管理',
-        isStrategic: true,
-        investment: 1500,
-        progress: '60%',
-        manager: '孙七'
-      }
-    ])
-
-    const achievementDetailColumns = [
-      { title: '成果名称', dataIndex: 'achievementName', key: 'achievementName' },
-      { title: '成果类型', dataIndex: 'type', key: 'type' },
-      { title: '转化状态', dataIndex: 'converted', key: 'converted' },
-      { title: '转化价值(万)', dataIndex: 'value', key: 'value' },
-      { title: '完成时间', dataIndex: 'completedTime', key: 'completedTime' },
-      { title: '负责人', dataIndex: 'manager', key: 'manager' }
-    ]
-
-    const achievementDetailData = ref([
-      {
-        key: '1',
-        achievementName: '智能水质监测算法专利',
-        type: '发明专利',
-        converted: true,
-        value: 280,
-        completedTime: '2024-12-15',
-        manager: '张三'
-      },
-      {
-        key: '2',
-        achievementName: '水处理技术论文',
-        type: 'SCI论文',
-        converted: false,
-        value: 0,
-        completedTime: '2024-11-20',
-        manager: '李四'
-      },
-      {
-        key: '3',
-        achievementName: '节水设备软件著作权',
-        type: '软件著作权',
-        converted: true,
-        value: 150,
-        completedTime: '2024-10-08',
-        manager: '王五'
-      }
-    ])
-
-    // 方法
-    const refreshData = () => {
-      message.success('数据已刷新')
-      nextTick(() => {
-        initCharts()
-      })
-    }
-
-    const exportReport = () => {
-      message.success('报告导出中...')
-    }
-
-    const showSettings = () => {
-      message.info('打开配置面板')
-    }
-
-    const getStatusColor = (status) => {
-      const colors = {
-        '达标': 'green',
-        '待提升': 'orange',
-        '不达标': 'red'
-      }
-      return colors[status] || 'default'
-    }
-
-    const getAchievementTypeColor = (type) => {
-      const colors = {
-        '发明专利': 'blue',
-        'SCI论文': 'green',
-        '软件著作权': 'purple',
-        '实用新型': 'orange'
-      }
-      return colors[type] || 'default'
-    }
-
-    const getAchievementTypeIcon = (type) => {
-      const icons = {
-        '发明专利': '🔬',
-        'SCI论文': '📄',
-        '软件著作权': '💻',
-        '实用新型': '🔧'
-      }
-      return icons[type] || '📋'
-    }
-
-    // 初始化图表
-    const initCharts = () => {
-      // 研发投入强度趋势图
-      if (rdIntensityChartRef.value) {
-        const rdChart = echarts.init(rdIntensityChartRef.value)
-        rdChart.setOption({
-          title: {
-            text: '研发投入强度变化趋势',
-            textStyle: { fontSize: 14 }
-          },
-          tooltip: { trigger: 'axis' },
-          xAxis: {
-            type: 'category',
-            data: ['2021Q1', '2021Q2', '2021Q3', '2021Q4', '2022Q1', '2022Q2', '2022Q3', '2022Q4', '2023Q1', '2023Q2', '2023Q3', '2023Q4']
-          },
-          yAxis: {
-            type: 'value',
-            name: '强度(%)',
-            axisLabel: { formatter: '{value}%' }
-          },
-          series: [{
-            name: '研发投入强度',
-            type: 'line',
-            data: [3.2, 3.5, 3.8, 4.1, 4.3, 4.0, 4.2, 4.5, 4.6, 4.4, 4.7, 4.8],
-            smooth: true,
-            lineStyle: { color: '#1890ff' },
-            itemStyle: { color: '#1890ff' },
-            areaStyle: { 
-              color: {
-                type: 'linear',
-                x: 0, y: 0, x2: 0, y2: 1,
-                colorStops: [
-                  { offset: 0, color: 'rgba(24, 144, 255, 0.3)' },
-                  { offset: 1, color: 'rgba(24, 144, 255, 0.1)' }
-                ]
-              }
-            }
-          }]
-        })
-      }
-
-      // 水务项目分布图
-      if (strategicChartRef.value) {
-        const strategicChart = echarts.init(strategicChartRef.value)
-        strategicChart.setOption({
-          title: {
-            text: '水务项目领域分布',
-            textStyle: { fontSize: 14 }
-          },
-          tooltip: { trigger: 'item' },
-          series: [{
-            name: '水务领域分布',
-            type: 'pie',
-            radius: ['40%', '70%'],
-            data: [
-              { value: 18, name: '智慧水务', itemStyle: { color: '#1890ff' } },
-              { value: 15, name: '水质监测', itemStyle: { color: '#52c41a' } },
-              { value: 12, name: '节水技术', itemStyle: { color: '#faad14' } },
-              { value: 8, name: '污水处理', itemStyle: { color: '#f5222d' } },
-              { value: 6, name: '供水管网', itemStyle: { color: '#722ed1' } },
-              { value: 4, name: '水资源管理', itemStyle: { color: '#13c2c2' } }
-            ],
-            label: {
-              formatter: '{b}: {c}个\n({d}%)'
-            }
-          }]
-        })
-      }
-
-      // 成果分析图表
-      if (achievementChartRef.value) {
-        const achievementChart = echarts.init(achievementChartRef.value)
-        achievementChart.setOption({
-          title: {
-            text: '成果类型分布统计',
-            textStyle: { fontSize: 14 }
-          },
-          tooltip: { trigger: 'axis' },
-          xAxis: {
-            type: 'category',
-            data: ['发明专利', 'SCI论文', '软件著作权', '实用新型', '标准制定', '产品转化']
-          },
-          yAxis: { type: 'value' },
-          series: [{
-            name: '成果数量',
-            type: 'bar',
-            data: [45, 38, 28, 22, 15, 34],
-            itemStyle: {
-              color: {
-                type: 'linear',
-                x: 0, y: 0, x2: 0, y2: 1,
-                colorStops: [
-                  { offset: 0, color: '#ff7875' },
-                  { offset: 1, color: '#ff4d4f' }
-                ]
-              }
-            }
-          }]
-        })
-      }
-
-      // 部门绩效排行图
-      if (performanceChartRef.value) {
-        const performanceChart = echarts.init(performanceChartRef.value)
-        performanceChart.setOption({
-          title: {
-            text: '部门综合绩效排行',
-            textStyle: { fontSize: 14 }
-          },
-          tooltip: { trigger: 'axis' },
-          xAxis: { type: 'value', max: 100 },
-          yAxis: {
-            type: 'category',
-            data: ['行政部', '财务部', '采购部', '技术部']
-          },
-          series: [{
-            name: '绩效得分',
-            type: 'bar',
-            data: [82.7, 85.3, 89.6, 95.2],
-            itemStyle: {
-              color: (params) => {
-                const colors = ['#faad14', '#f5222d', '#52c41a', '#1890ff']
-                return colors[params.dataIndex]
-              }
-            },
-            label: {
-              show: true,
-              position: 'right',
-              formatter: '{c}分'
-            }
-          }]
-        })
-      }
-    }
-
-    onMounted(() => {
-      nextTick(() => {
-        initCharts()
-      })
+      tooltip: { trigger: 'item' },
+      series: [{
+        name: '水务领域分布',
+        type: 'pie',
+        radius: ['40%', '70%'],
+        data: [
+          { value: 18, name: '智慧水务', itemStyle: { color: '#1890ff' } },
+          { value: 15, name: '水质监测', itemStyle: { color: '#52c41a' } },
+          { value: 12, name: '节水技术', itemStyle: { color: '#faad14' } },
+          { value: 8, name: '污水处理', itemStyle: { color: '#f5222d' } },
+          { value: 6, name: '供水管网', itemStyle: { color: '#722ed1' } },
+          { value: 4, name: '水资源管理', itemStyle: { color: '#13c2c2' } }
+        ],
+        label: {
+          formatter: '{b}: {c}个\n({d}%)'
+        }
+      }]
     })
+  }
 
-    return {
-      statistics,
-      activeTab,
-      rdDetailColumns,
-      rdDetailData,
-      strategicDetailColumns,
-      strategicDetailData,
-      achievementDetailColumns,
-      achievementDetailData,
-      rdIntensityChartRef,
-      strategicChartRef,
-      achievementChartRef,
-      performanceChartRef,
-      refreshData,
-      exportReport,
-      showSettings,
-      getStatusColor,
-      getAchievementTypeColor,
-      getAchievementTypeIcon
-    }
+  // 成果分析图表
+  if (achievementChartRef.value) {
+    const achievementChart = echarts.init(achievementChartRef.value)
+    achievementChart.setOption({
+      title: {
+        text: '成果类型分布统计',
+        textStyle: { fontSize: 14 }
+      },
+      tooltip: { trigger: 'axis' },
+      xAxis: {
+        type: 'category',
+        data: ['发明专利', 'SCI论文', '软件著作权', '实用新型', '标准制定', '产品转化']
+      },
+      yAxis: { type: 'value' },
+      series: [{
+        name: '成果数量',
+        type: 'bar',
+        data: [45, 38, 28, 22, 15, 34],
+        itemStyle: {
+          color: {
+            type: 'linear',
+            x: 0, y: 0, x2: 0, y2: 1,
+            colorStops: [
+              { offset: 0, color: '#ff7875' },
+              { offset: 1, color: '#ff4d4f' }
+            ]
+          }
+        }
+      }]
+    })
+  }
+
+  // 部门绩效排行图
+  if (performanceChartRef.value) {
+    const performanceChart = echarts.init(performanceChartRef.value)
+    performanceChart.setOption({
+      title: {
+        text: '部门综合绩效排行',
+        textStyle: { fontSize: 14 }
+      },
+      tooltip: { trigger: 'axis' },
+      xAxis: { type: 'value', max: 100 },
+      yAxis: {
+        type: 'category',
+        data: ['行政部', '财务部', '采购部', '技术部']
+      },
+      series: [{
+        name: '绩效得分',
+        type: 'bar',
+        data: [82.7, 85.3, 89.6, 95.2],
+        itemStyle: {
+          color: (params) => {
+            const colors = ['#faad14', '#f5222d', '#52c41a', '#1890ff']
+            return colors[params.dataIndex]
+          }
+        },
+        label: {
+          show: true,
+          position: 'right',
+          formatter: '{c}分'
+        }
+      }]
+    })
   }
 }
+
+onMounted(() => {
+  nextTick(() => {
+    initCharts()
+  })
+})
 </script>
 
 <style scoped>

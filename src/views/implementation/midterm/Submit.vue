@@ -1,263 +1,1095 @@
+<!--
+ * @file 提交中期申请页面 - 申报单位角色
+ * @description 申报单位提交新的项目中期申请
+ * @author 科研管理系统
+ * @version 3.0.0
+ * @date 2025-01-22
+-->
 <template>
-  <div class="midterm-submit-page">
+  <div class="midterm-application-submit">
     <!-- 页面头部 -->
     <div class="page-header">
       <div class="header-content">
         <h1 class="page-title">
-          <FileAddOutlined /> 项目中期材料提交
+          <span class="title-icon">
+            <PlusOutlined />
+          </span>
+          {{ pageTitle }}
         </h1>
-        <p class="page-desc">管理项目中期检查所需的各类材料，支持材料上传、进度分析</p>
+        <p class="page-description">
+          {{ pageDescription }}
+        </p>
       </div>
-      <div class="header-actions" style="display: flex; align-items: center; gap: 16px;">
-        <a-select v-model:value="selectedProjectId" style="width: 260px" @change="onProjectChange">
-          <a-select-option v-for="item in projectOptions" :key="item.id" :value="item.id">
-            {{ item.title }}
-          </a-select-option>
-        </a-select>
-        <a-button type="primary" @click="handleSubmit">
-          <SendOutlined /> 提交审批
+      <div class="header-actions">
+        <a-button @click="goBack">
+          <ArrowLeftOutlined />
+          返回列表
         </a-button>
       </div>
     </div>
 
-    <!-- 材料上传与管理区 -->
-    <a-card class="materials-section" title="中期检查材料上传与管理">
-      <a-table :columns="materialColumns" :data-source="materials" rowKey="name" bordered>
-        <template #bodyCell="{ column, record }">
-          <template v-if="column.key === 'file'">
-            <a-upload
-              :file-list="record.fileList"
-              :before-upload="file => beforeUpload(file, record)"
-              :on-remove="file => onRemove(file, record)"
-              :max-count="1"
+    <!-- 申请表单 -->
+    <div class="form-container">
+      <a-form
+        ref="formRef"
+        :model="formData"
+        :rules="rules"
+        layout="vertical"
+        @finish="handleSubmit"
+      >
+        <!-- 项目选择 -->
+        <div class="form-section">
+          <div class="section-header">
+            <h3>
+              <ProjectOutlined />
+              项目选择
+            </h3>
+            <p>选择需要申请中期检查的项目</p>
+          </div>
+          <div class="section-content">
+            <a-form-item
+              label="选择项目"
+              name="projectId"
+              :rules="[{ required: true, message: '请选择项目' }]"
             >
-              <a-button type="link">上传</a-button>
-            </a-upload>
-            <div v-if="record.fileList && record.fileList.length > 0" style="margin-top: 4px;">
-              <a-tag color="blue" v-for="file in record.fileList" :key="file.uid || file.name" style="margin-bottom: 4px;">
-                <span>{{ file.name }}</span>
-                <a @click.stop="downloadFile(file)" style="margin-left: 8px;">下载</a>
-                <a @click.stop="removeFile(record, file)" style="margin-left: 8px; color: #ff4d4f;">删除</a>
+              <a-select
+                v-model:value="formData.projectId"
+                placeholder="请选择项目"
+                size="large"
+                show-search
+                :filter-option="filterOption"
+                @change="handleProjectChange"
+              >
+                <a-select-option
+                  v-for="project in availableProjects"
+                  :key="project.id"
+                  :value="project.id"
+                >
+                  <div class="project-option">
+                    <div class="project-name">{{ project.name }}</div>
+                    <div class="project-info">
+                      <span class="project-code">{{ project.code }}</span>
+                      <span class="project-status">{{ project.status }}</span>
+                    </div>
+                  </div>
+                </a-select-option>
+              </a-select>
+            </a-form-item>
+
+            <!-- 选中项目的详细信息 -->
+            <div v-if="selectedProject" class="selected-project-info">
+              <a-descriptions :column="2" bordered size="small">
+                <a-descriptions-item label="项目名称" :span="2">
+                  {{ selectedProject.name }}
+                </a-descriptions-item>
+                <a-descriptions-item label="项目编号">
+                  {{ selectedProject.code }}
+                </a-descriptions-item>
+                <a-descriptions-item label="项目状态">
+                  <a-tag :color="getProjectStatusColor(selectedProject.status)">
+                    {{ selectedProject.status }}
               </a-tag>
+                </a-descriptions-item>
+                <a-descriptions-item label="开题时间">
+                  {{ selectedProject.openingDate }}
+                </a-descriptions-item>
+                <a-descriptions-item label="计划完成时间">
+                  {{ selectedProject.plannedEndDate }}
+                </a-descriptions-item>
+                <a-descriptions-item label="项目负责人">
+                  {{ selectedProject.leader }}
+                </a-descriptions-item>
+                <a-descriptions-item label="项目总预算">
+                  {{ selectedProject.budget }}万元
+                </a-descriptions-item>
+              </a-descriptions>
             </div>
-            <span v-if="record.rejected" style="color: #ff4d4f; margin-left: 8px;">需重新上传</span>
-          </template>
-          <template v-else-if="column.key === 'template'">
-            <a-button type="link" @click="downloadTemplate(record)">
-              下载模板
-            </a-button>
-          </template>
-        </template>
-      </a-table>
-    </a-card>
+          </div>
+        </div>
 
-    <!-- 进度分析区 -->
-    <a-card class="progress-section" title="项目进度分析">
+        <!-- 申请信息 -->
+        <div class="form-section">
+          <div class="section-header">
+            <h3>
+              <FileTextOutlined />
+              中期信息
+            </h3>
+            <p>填写中期检查申请的基本信息</p>
+          </div>
+          <div class="section-content">
+            <a-row :gutter="24">
+              <a-col :xs="24" :md="12">
+                <a-form-item
+                  label="申请中期时间"
+                  name="expectedDate"
+                  :rules="[{ required: true, message: '请选择申请中期时间' }]"
+                >
+                  <a-date-picker
+                    v-model:value="formData.expectedDate"
+                    placeholder="请选择申请中期时间"
+                    size="large"
+                    style="width: 100%"
+                    :disabled-date="disabledDate"
+                  />
+                </a-form-item>
+              </a-col>
+              <a-col :xs="24" :md="12">
+                <a-form-item
+                  label="检查形式"
+                  name="checkType"
+                  :rules="[{ required: true, message: '请选择检查形式' }]"
+                >
+                  <a-select
+                    v-model:value="formData.checkType"
+                    placeholder="请选择检查形式"
+                    size="large"
+                  >
+                    <a-select-option value="meeting">会议检查</a-select-option>
+                    <a-select-option value="written">书面检查</a-select-option>
+                    <a-select-option value="online">线上检查</a-select-option>
+                  </a-select>
+                </a-form-item>
+              </a-col>
+            </a-row>
+
+            <a-form-item
+              label="进展情况"
+              name="description"
+              :rules="[{ required: true, message: '请填写项目进展情况' }]"
+            >
+              <a-textarea
+                v-model:value="formData.description"
+                placeholder="请详细说明项目当前进展、已完成任务、取得成果及下一步计划"
+                :rows="4"
+                size="large"
+                show-count
+                :maxlength="500"
+              />
+            </a-form-item>
+
+            <a-form-item label="存在问题及解决方案" name="remarks">
+              <a-textarea
+                v-model:value="formData.remarks"
+                placeholder="如有项目执行中遇到的问题和拟采取的解决措施（选填）"
+                :rows="3"
+                size="large"
+                show-count
+                :maxlength="200"
+              />
+            </a-form-item>
+          </div>
+        </div>
+
+        <!-- 材料上传 -->
+        <!-- 评审意见显示 -->
+        <div v-if="(isResubmit || isImprovement) && reviewComments" class="form-section">
+          <div class="section-header">
+            <h3>
+              <ExclamationCircleOutlined />
+              {{ isImprovement ? '整改要求' : '审核意见' }}
+            </h3>
+            <p>请仔细阅读以下{{ isImprovement ? '整改要求' : '审核意见' }}，并据此修改完善申请材料</p>
+          </div>
+          <div class="review-comments-content">
+            <a-alert
+              :message="isImprovement ? '中期会议整改要求' : '材料审核意见'"
+              :type="isImprovement ? 'warning' : 'error'"
+              show-icon
+            >
+              <template #description>
+                <div class="comments-text">{{ reviewComments }}</div>
+              </template>
+            </a-alert>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="section-header">
+            <h3>
+              <CloudUploadOutlined />
+              中期材料
+            </h3>
+            <p>
+              {{ isImprovement ? '根据整改要求上传相关材料' : 
+                 isResubmit ? '重新上传项目中期所需的相关材料' : 
+                 '上传项目中期检查所需的相关材料' }}
+            </p>
+            <div v-if="isResubmit || isImprovement" class="resubmit-notice">
       <a-alert
-        message="上传Excel后自动分析项目进度完成情况，结果如下："
-        type="info"
+                :message="isImprovement ? '中期材料整改' : '重新提交提醒'"
+                :description="isImprovement ? 
+                  '请根据中期检查会议的整改要求，上传相应的整改材料和说明文档。' : 
+                  '由于材料审核未通过，请根据审核意见重新准备并上传所有必需材料。'"
+                type="warning"
         show-icon
-      />
-      <a-upload :before-upload="handleProgressExcel" :show-upload-list="false">
-        <a-button type="primary" style="margin-bottom: 12px;">上传进度分析Excel</a-button>
+                style="margin-bottom: 24px"
+              />
+            </div>
+          </div>
+
+          <!-- 必需材料 -->
+          <div class="materials-section">
+            <div class="materials-header">
+              <h4>
+                <ExclamationCircleOutlined />
+                必需材料
+              </h4>
+              <p>以下材料为中期检查必须提交的材料</p>
+            </div>
+
+            <div class="materials-list">
+              <div
+                v-for="(material, index) in requiredMaterials"
+                :key="material.id"
+                class="material-item required"
+              >
+                <div class="material-info">
+                  <div class="material-header">
+                    <span class="material-name">{{ material.name }}</span>
+                    <a-tag color="red" size="small">必需</a-tag>
+                  </div>
+                  <div class="material-description">{{ material.description }}</div>
+                  <div class="material-format">{{ material.format }}</div>
+                </div>
+
+                <div class="material-upload">
+                  <a-upload
+                    v-model:file-list="material.files"
+                    :before-upload="(file) => beforeUpload(file, material)"
+                    :on-remove="(file) => onRemove(file, material)"
+                    :multiple="material.multiple"
+                    :accept="material.accept"
+                    :show-upload-list="true"
+                    list-type="text"
+                  >
+                    <a-button>
+                      <UploadOutlined />
+                      上传文件
+                    </a-button>
+                  </a-upload>
+
+                  <!-- 已上传文件列表 -->
+                  <div v-if="material.files && material.files.length > 0" class="uploaded-files">
+                    <div
+                      v-for="file in material.files"
+                      :key="file.uid"
+                      class="uploaded-file"
+                    >
+                      <div class="file-info">
+                        <FileOutlined />
+                        <span class="file-name">{{ file.name }}</span>
+                        <span class="file-size">{{ formatFileSize(file.size) }}</span>
+                      </div>
+                      <div class="file-actions">
+                        <a-button type="link" size="small" @click="handlePreviewFile(file)">
+                          预览
+                        </a-button>
+                        <a-button type="link" size="small" @click="downloadFile(file)">
+                          下载
+                        </a-button>
+                        <a-button
+                          type="link"
+                          size="small"
+                          danger
+                          @click="removeFile(file, material)"
+                        >
+                          删除
+                        </a-button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 可选材料 -->
+          <div class="materials-section">
+            <div class="materials-header">
+              <h4>
+                <InfoCircleOutlined />
+                可选材料
+              </h4>
+              <p>以下材料为中期检查可选提交的材料，有助于更好地展示项目进展</p>
+            </div>
+
+            <div class="materials-list">
+              <div
+                v-for="(material, index) in optionalMaterials"
+                :key="material.id"
+                class="material-item optional"
+              >
+                <div class="material-info">
+                  <div class="material-header">
+                    <span class="material-name">{{ material.name }}</span>
+                    <a-tag color="blue" size="small">可选</a-tag>
+                  </div>
+                  <div class="material-description">{{ material.description }}</div>
+                  <div class="material-format">{{ material.format }}</div>
+                </div>
+
+                <div class="material-upload">
+                  <a-upload
+                    v-model:file-list="material.files"
+                    :before-upload="(file) => beforeUpload(file, material)"
+                    :on-remove="(file) => onRemove(file, material)"
+                    :multiple="material.multiple"
+                    :accept="material.accept"
+                    :show-upload-list="true"
+                    list-type="text"
+                  >
+                    <a-button>
+                      <UploadOutlined />
+                      上传文件
+                    </a-button>
       </a-upload>
-      <a-table :columns="progressColumns" :data-source="progressData" bordered size="small" />
-    </a-card>
 
-    <!-- 材料完整性校验区 -->
-    <a-card class="integrity-section" title="材料完整性校验">
-      <a-alert
-        :message="integrityMessage"
-        :type="integrityStatus === '完整' ? 'success' : 'warning'"
-        show-icon
-      />
-      <a-list :data-source="integrityList" bordered>
-        <template #renderItem="{ item }">
-          <a-list-item>
-            <a-badge :status="item.status === '已上传' ? 'success' : 'error'" :text="item.name + ' - ' + item.status" />
-          </a-list-item>
-        </template>
-      </a-list>
-    </a-card>
+                  <!-- 已上传文件列表 -->
+                  <div v-if="material.files && material.files.length > 0" class="uploaded-files">
+                    <div
+                      v-for="file in material.files"
+                      :key="file.uid"
+                      class="uploaded-file"
+                    >
+                      <div class="file-info">
+                        <FileOutlined />
+                        <span class="file-name">{{ file.name }}</span>
+                        <span class="file-size">{{ formatFileSize(file.size) }}</span>
+                      </div>
+                      <div class="file-actions">
+                        <a-button type="link" size="small" @click="handlePreviewFile(file)">
+                          预览
+                        </a-button>
+                        <a-button type="link" size="small" @click="downloadFile(file)">
+                          下载
+                        </a-button>
+                        <a-button
+                          type="link"
+                          size="small"
+                          danger
+                          @click="removeFile(file, material)"
+                        >
+                          删除
+                        </a-button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 提交确认 -->
+        <div class="form-section">
+          <div class="section-header">
+            <h3>
+              <CheckCircleOutlined />
+              提交确认
+            </h3>
+            <p>请确认所有信息无误后提交中期申请</p>
+          </div>
+          <div class="section-content">
+            <div class="submit-checklist">
+              <a-checkbox-group v-model:value="checkedItems" @change="handleCheckChange">
+                <div class="checklist-item">
+                  <a-checkbox value="materials">
+                    我确认已上传所有必需的中期材料
+                  </a-checkbox>
+                </div>
+                <div class="checklist-item">
+                  <a-checkbox value="accuracy">
+                    我确认所填写的信息真实准确
+                  </a-checkbox>
+                </div>
+                <div class="checklist-item">
+                  <a-checkbox value="responsibility">
+                    我承诺对提交的材料承担相应责任
+                  </a-checkbox>
+                </div>
+              </a-checkbox-group>
+            </div>
+
+            <div class="submit-actions">
+              <a-space size="large">
+                <a-button size="large" @click="saveDraft">
+                  <SaveOutlined />
+                  保存草稿
+                </a-button>
+                <a-button
+                  type="primary"
+                  size="large"
+                  html-type="submit"
+                  :loading="submitting"
+                  :disabled="!canSubmit"
+                >
+                  <SendOutlined />
+                  {{ submitButtonText }}
+                </a-button>
+              </a-space>
+            </div>
+          </div>
+        </div>
+      </a-form>
+    </div>
+
+    <!-- 文件预览弹窗 -->
+    <FilePreview
+      v-if="previewVisible"
+      :visible="previewVisible"
+      :file="previewFile"
+      @close="closePreview"
+    />
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+/**
+ * 项目中期申请提交页面
+ * 功能：中期申请表单填写、中期材料上传、申请提交
+ */
+import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import dayjs from 'dayjs'
 import {
-  FileAddOutlined,
+  PlusOutlined,
+  ArrowLeftOutlined,
+  ProjectOutlined,
+  FileTextOutlined,
+  CloudUploadOutlined,
+  ExclamationCircleOutlined,
+  InfoCircleOutlined,
+  CheckCircleOutlined,
+  UploadOutlined,
+  FileOutlined,
+  SaveOutlined,
   SendOutlined
 } from '@ant-design/icons-vue'
 import { message } from 'ant-design-vue'
-import { useRoute, useRouter } from 'vue-router'
-import { useApprovalStore } from '@/store/approval'
+import FilePreview from '@/components/FilePreview.vue'
 
-const approvalStore = useApprovalStore()
 const router = useRouter()
-const route = useRoute()
 
-// 项目选择相关
-const selectedProjectId = ref('')
-const projectOptions = computed(() => approvalStore.approvalList.map(p => ({ id: p.id, title: p.title })))
+// 页面配置
+const pageTitle = ref('提交中期申请')
+const pageDescription = ref('申请新的项目中期检查，上传中期材料并提交审核')
 
-onMounted(() => {
-  if (route.query.id) {
-    selectedProjectId.value = route.query.id
-    loadProjectMaterials(route.query.id)
-  } else if (approvalStore.approvalList.length > 0) {
-    selectedProjectId.value = approvalStore.approvalList[0].id
-    loadProjectMaterials(selectedProjectId.value)
-  }
+// 表单引用
+const formRef = ref()
+
+// 页面状态
+const submitting = ref(false)
+const checkedItems = ref([])
+const previewVisible = ref(false)
+const previewFile = ref(null)
+
+// 评审意见
+const reviewComments = ref('')
+
+// URL参数判断
+const urlParams = new URLSearchParams(window.location.search)
+const isResubmit = urlParams.get('type') === 'resubmit'
+const isImprovement = urlParams.get('type') === 'improvement'
+
+// 表单数据
+const formData = ref({
+  projectId: undefined,
+  expectedDate: undefined,
+  checkType: undefined,
+  description: '',
+  remarks: ''
 })
 
-function onProjectChange(id) {
-  loadProjectMaterials(id)
+// 表单验证规则
+const rules = {
+  projectId: [{ required: true, message: '请选择项目' }],
+  expectedDate: [{ required: true, message: '请选择申请中期时间' }],
+  checkType: [{ required: true, message: '请选择检查形式' }],
+  description: [{ required: true, message: '请填写项目进展情况' }]
 }
 
-// 材料表格列
-const materialColumns = [
-  { title: '材料名称', dataIndex: 'name', key: 'name' },
-  { title: '模板下载', key: 'template', width: 120 },
-  { title: '文件上传', key: 'file', width: 180 }
-]
-
-// 中期检查材料数据
-const materials = ref([
-  { name: '项目中期检查报告', fileList: [], rejected: false },
-  { name: '项目执行情况总结', fileList: [], rejected: false },
-  { name: '阶段性成果材料', fileList: [], rejected: false },
-  { name: '预算执行情况报告', fileList: [], rejected: false },
-  { name: '下阶段工作计划', fileList: [], rejected: false }
+// 可选择的项目列表
+const availableProjects = ref([
+  {
+    id: 1,
+    name: '智慧城市大数据平台建设项目',
+    code: 'PROJ-2024-001',
+    status: '进行中',
+    openingDate: '2024-02-15',
+    plannedEndDate: '2024-12-31',
+    leader: '张三',
+    budget: 500
+  },
+  {
+    id: 2,
+    name: '区块链供应链金融平台',
+    code: 'PROJ-2024-002',
+    status: '进行中',
+    openingDate: '2024-03-01',
+    plannedEndDate: '2024-11-30',
+    leader: '李四',
+    budget: 300
+  }
 ])
 
-// 进度表格列
-const progressColumns = [
-  { title: '工作项目', dataIndex: 'task', key: 'task' },
-  { title: '计划完成度', dataIndex: 'planned', key: 'planned' },
-  { title: '实际完成度', dataIndex: 'actual', key: 'actual' },
-  { title: '进度状态', dataIndex: 'status', key: 'status' }
-]
-
-// 进度数据
-const progressData = ref([])
-
-// 完整性校验数据
-const integrityList = ref([
-  { name: '项目中期检查报告', status: '未上传' },
-  { name: '项目执行情况总结', status: '未上传' },
-  { name: '阶段性成果材料', status: '未上传' },
-  { name: '预算执行情况报告', status: '未上传' },
-  { name: '下阶段工作计划', status: '未上传' }
+// 必需材料配置
+const requiredMaterials = ref([
+  {
+    id: 'progress_report',
+    name: '项目进展报告',
+    description: '详细说明项目当前执行情况、已完成任务及取得成果',
+    format: '支持PDF、Word格式，文件大小不超过20MB',
+    accept: '.pdf,.doc,.docx',
+    multiple: false,
+    files: []
+  },
+  {
+    id: 'achievement_summary',
+    name: '阶段性成果总结',
+    description: '已取得的研究成果、技术突破或应用效果总结',
+    format: '支持PDF、Word格式，文件大小不超过20MB',
+    accept: '.pdf,.doc,.docx',
+    multiple: false,
+    files: []
+  },
+  {
+    id: 'financial_report',
+    name: '经费使用报告',
+    description: '项目经费使用情况及预算执行报告',
+    format: '支持PDF、Word、Excel格式，文件大小不超过20MB',
+    accept: '.pdf,.doc,.docx,.xls,.xlsx',
+    multiple: false,
+    files: []
+  },
+  {
+    id: 'next_plan',
+    name: '下阶段工作计划',
+    description: '项目后续阶段的工作安排和实施计划',
+    format: '支持PDF、Word格式，文件大小不超过20MB',
+    accept: '.pdf,.doc,.docx',
+    multiple: false,
+    files: []
+  }
 ])
-const integrityStatus = ref('不完整')
-const integrityMessage = ref('请上传所有必需材料')
 
-// 加载项目已上传材料
-function loadProjectMaterials(projectId) {
-  const project = approvalStore.approvalList.find(p => p.id === projectId)
-  if (!project) return
-  // 模拟加载中期材料
-  materials.value.forEach(mat => {
-    mat.fileList = []
-    mat.rejected = false
+// 可选材料配置
+const optionalMaterials = ref([
+  {
+    id: 'technical_documents',
+    name: '技术文档',
+    description: '相关的技术规范、设计文档或系统说明',
+    format: '支持PDF、Word格式，文件大小不超过20MB',
+    accept: '.pdf,.doc,.docx',
+    multiple: true,
+    files: []
+  },
+  {
+    id: 'test_results',
+    name: '测试报告',
+    description: '系统测试、性能测试或用户测试的相关报告',
+    format: '支持PDF、Word格式，文件大小不超过20MB',
+    accept: '.pdf,.doc,.docx',
+    multiple: true,
+    files: []
+  },
+  {
+    id: 'demo_materials',
+    name: '演示材料',
+    description: '项目演示视频、截图或操作说明等',
+    format: '支持PDF、Word、PPT、视频格式，文件大小不超过50MB',
+    accept: '.pdf,.doc,.docx,.ppt,.pptx,.mp4,.avi',
+    multiple: true,
+    files: []
+  },
+  {
+    id: 'problem_analysis',
+    name: '问题分析报告',
+    description: '项目执行中遇到的问题及解决方案分析',
+    format: '支持PDF、Word格式，文件大小不超过10MB',
+    accept: '.pdf,.doc,.docx',
+    multiple: false,
+    files: []
+  }
+])
+
+// 计算属性
+const selectedProject = computed(() => {
+  return availableProjects.value.find(p => p.id === formData.value.projectId)
+})
+
+const canSubmit = computed(() => {
+  const requiredChecks = ['materials', 'accuracy', 'responsibility']
+  return requiredChecks.every(item => checkedItems.value.includes(item))
+})
+
+const submitButtonText = computed(() => {
+  if (isImprovement) return '提交整改材料'
+  if (isResubmit) return '重新提交申请'
+  return '提交中期申请'
+})
+
+// 事件处理方法
+const goBack = () => {
+  router.go(-1)
+}
+
+const filterOption = (input, option) => {
+  const project = availableProjects.value.find(p => p.id === option.value)
+  return project?.name.toLowerCase().includes(input.toLowerCase()) ||
+         project?.code.toLowerCase().includes(input.toLowerCase())
+}
+
+const handleProjectChange = (projectId) => {
+  console.log('选择的项目ID:', projectId)
+}
+
+const getProjectStatusColor = (status) => {
+  const colorMap = {
+    '已立项': 'green',
+    '待立项': 'orange',
+    '已开题': 'blue',
+    '进行中': 'processing',
+    '已完成': 'success'
+  }
+  return colorMap[status] || 'default'
+}
+
+const disabledDate = (current) => {
+  // 不能选择过去的日期
+  return current && current < dayjs().startOf('day')
+}
+
+const beforeUpload = (file, material) => {
+  // 文件大小检查
+  const maxSize = material.id === 'demo_materials' ? 50 * 1024 * 1024 : 20 * 1024 * 1024
+  if (file.size > maxSize) {
+    const maxSizeText = material.id === 'demo_materials' ? '50MB' : '20MB'
+    message.error(`文件大小不能超过${maxSizeText}`)
+  return false
+}
+
+  // 添加到对应材料的文件列表
+  material.files.push({
+    uid: Date.now() + Math.random(),
+    name: file.name,
+    size: file.size,
+    type: file.type,
+    originFileObj: file
   })
-  progressData.value = []
+
+  return false // 阻止自动上传
 }
 
-// 上传材料
-function beforeUpload(file, record) {
-  record.fileList = [file]
-  record.rejected = false
-  updateIntegrity(record.name, '已上传')
-  message.success('文件已上传（模拟）')
-  return false
+const onRemove = (file, material) => {
+  const index = material.files.findIndex(f => f.uid === file.uid)
+  if (index > -1) {
+    material.files.splice(index, 1)
+  }
 }
 
-function onRemove(file, record) {
-  record.fileList = []
-  record.rejected = false
-  updateIntegrity(record.name, '未上传')
+const removeFile = (file, material) => {
+  onRemove(file, material)
 }
 
-function updateIntegrity(name, status) {
-  const item = integrityList.value.find(i => i.name === name)
-  if (item) item.status = status
-  integrityStatus.value = integrityList.value.every(i => i.status === '已上传') ? '完整' : '不完整'
-  integrityMessage.value = integrityStatus.value === '完整' ? '所有材料已上传，可提交审批' : '请上传所有必需材料'
+const handlePreviewFile = (file) => {
+  previewFile.value = file
+  previewVisible.value = true
 }
 
-// 下载模板
-function downloadTemplate(record) {
-  message.success('模板下载功能开发中...')
+const downloadFile = (file) => {
+  const url = URL.createObjectURL(file.originFileObj)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = file.name
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+  URL.revokeObjectURL(url)
 }
 
-// 进度Excel上传并解析
-function handleProgressExcel(file) {
-  progressData.value = [
-    { task: '需求分析', planned: '100%', actual: '100%', status: '已完成' },
-    { task: '系统设计', planned: '100%', actual: '90%', status: '进行中' },
-    { task: '编码实现', planned: '60%', actual: '45%', status: '滞后' },
-    { task: '测试验收', planned: '0%', actual: '0%', status: '未开始' }
-  ]
-  message.success('项目进度Excel已解析')
-  return false
+const closePreview = () => {
+  previewVisible.value = false
+  previewFile.value = null
 }
 
-// 提交审批
-function handleSubmit() {
-  message.success('中期检查材料已提交审批（模拟）')
+const formatFileSize = (bytes) => {
+  if (bytes === 0) return '0 B'
+  const k = 1024
+  const sizes = ['B', 'KB', 'MB', 'GB']
+  const i = Math.floor(Math.log(bytes) / Math.log(k))
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
 }
 
-function downloadFile(file) {
-  message.info('下载示例：' + file.name)
+const handleCheckChange = (checkedValues) => {
+  console.log('选中的确认项:', checkedValues)
 }
 
-function removeFile(record, file) {
-  record.fileList = record.fileList.filter(f => f !== file)
-  updateIntegrity(record.name, '未上传')
-  message.success('已删除示例文件')
+const saveDraft = () => {
+  message.success('草稿保存成功')
 }
+
+const handleSubmit = async (values) => {
+  // 检查必需材料是否都已上传
+  const missingMaterials = requiredMaterials.value.filter(m => !m.files || m.files.length === 0)
+  if (missingMaterials.length > 0) {
+    message.error(`请上传必需材料：${missingMaterials.map(m => m.name).join('、')}`)
+    return
+  }
+
+  submitting.value = true
+
+  try {
+    // 模拟提交API调用
+    await new Promise(resolve => setTimeout(resolve, 2000))
+
+    message.success('中期申请提交成功！')
+    
+    // 跳转到进度查询页面
+    router.push('/implementation/midterm/progress')
+  } catch (error) {
+    message.error('提交失败，请稍后重试')
+  } finally {
+    submitting.value = false
+  }
+}
+
+// 生命周期
+onMounted(() => {
+  // 初始化页面数据
+  if (isResubmit) {
+    pageTitle.value = '重新提交中期申请'
+    pageDescription.value = '根据审核意见重新提交中期申请材料'
+    
+    // 从URL参数获取审核意见
+    const rejectionReason = urlParams.get('rejectionReason')
+    if (rejectionReason) {
+      reviewComments.value = decodeURIComponent(rejectionReason)
+    }
+  } else if (isImprovement) {
+    pageTitle.value = '整改中期材料'
+    pageDescription.value = '根据中期检查会议要求整改相关材料'
+    
+    // 从URL参数获取整改要求
+    const improvementRequirements = urlParams.get('improvementRequirements')
+    if (improvementRequirements) {
+      reviewComments.value = decodeURIComponent(improvementRequirements)
+    }
+  }
+})
 </script>
 
 <style scoped>
-.midterm-submit-page {
+.midterm-application-submit {
   padding: 24px;
-  background: #f5f7fa;
+  background: #f5f5f5;
   min-height: 100vh;
 }
+
+/* 页面头部样式 */
 .page-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   margin-bottom: 24px;
-  background: #fff;
   padding: 24px;
+  background: #fff;
   border-radius: 12px;
-  box-shadow: 0 2px 12px rgba(35,79,162,0.06);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
-.header-content {
-  flex: 1;
-}
-.page-title {
+
+.header-content h1 {
+  margin: 0 0 8px 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: #262626;
   display: flex;
   align-items: center;
-  gap: 12px;
-  font-size: 24px;
-  color: #234fa2;
-  margin: 0 0 8px 0;
 }
-.page-desc {
-  color: #64748b;
+
+.title-icon {
+  margin-right: 12px;
+  padding: 8px;
+  background: linear-gradient(135deg, #1890ff, #096dd9);
+  border-radius: 8px;
+  color: white;
+  font-size: 16px;
+}
+
+.page-description {
   margin: 0;
+  color: #8c8c8c;
   font-size: 14px;
 }
-.header-actions {
-  display: flex;
-  gap: 12px;
+
+/* 表单容器样式 */
+.form-container {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
 }
-.materials-section,
-.progress-section,
-.integrity-section {
+
+.form-section {
+  padding: 32px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.form-section:last-child {
+  border-bottom: none;
+}
+
+.section-header {
   margin-bottom: 24px;
 }
-</style> 
+
+.section-header h3 {
+  margin: 0 0 8px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #262626;
+  display: flex;
+  align-items: center;
+}
+
+.section-header h3 .anticon {
+  margin-right: 8px;
+  color: #1890ff;
+}
+
+.section-header p {
+  margin: 0;
+  color: #8c8c8c;
+  font-size: 14px;
+}
+
+/* 项目选择样式 */
+.project-option {
+  padding: 4px 0;
+}
+
+.project-name {
+  font-weight: 500;
+  color: #262626;
+  margin-bottom: 4px;
+}
+
+.project-info {
+  display: flex;
+  gap: 12px;
+  font-size: 12px;
+  color: #8c8c8c;
+}
+
+.selected-project-info {
+  margin-top: 16px;
+  padding: 16px;
+  background: #fafafa;
+  border-radius: 8px;
+  border: 1px solid #f0f0f0;
+}
+
+/* 材料上传样式 */
+.materials-section {
+  margin-bottom: 32px;
+}
+
+.materials-section:last-child {
+  margin-bottom: 0;
+}
+
+.materials-header {
+  margin-bottom: 20px;
+  padding: 16px;
+  background: #fafafa;
+  border-radius: 8px;
+  border-left: 4px solid #1890ff;
+}
+
+.materials-header h4 {
+  margin: 0 0 8px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #262626;
+  display: flex;
+  align-items: center;
+}
+
+.materials-header h4 .anticon {
+  margin-right: 8px;
+  color: #1890ff;
+}
+
+.materials-header p {
+  margin: 0;
+  color: #8c8c8c;
+  font-size: 14px;
+}
+
+.materials-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.material-item {
+  padding: 20px;
+  border: 2px solid #f0f0f0;
+  border-radius: 12px;
+  background: #fafafa;
+  transition: all 0.3s ease;
+}
+
+.material-item.required {
+  border-color: #ffccc7;
+  background: #fff2f0;
+}
+
+.material-item.optional {
+  border-color: #d6f3ff;
+  background: #f6ffff;
+}
+
+.material-item:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.material-info {
+  margin-bottom: 16px;
+}
+
+.material-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.material-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: #262626;
+}
+
+.material-description {
+  color: #595959;
+  font-size: 14px;
+  line-height: 1.5;
+  margin-bottom: 8px;
+}
+
+.material-format {
+  color: #8c8c8c;
+  font-size: 12px;
+}
+
+.uploaded-files {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.uploaded-file {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px;
+  background: #fff;
+  border: 1px solid #f0f0f0;
+  border-radius: 6px;
+}
+
+.file-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.file-name {
+  color: #262626;
+  font-weight: 500;
+}
+
+.file-size {
+  color: #8c8c8c;
+  font-size: 12px;
+}
+
+.file-actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* 提交确认样式 */
+.submit-checklist {
+  margin-bottom: 24px;
+  padding: 20px;
+  background: #fafafa;
+  border-radius: 8px;
+  border: 1px solid #f0f0f0;
+}
+
+.checklist-item {
+  margin-bottom: 12px;
+}
+
+.checklist-item:last-child {
+  margin-bottom: 0;
+}
+
+.submit-actions {
+  text-align: center;
+  padding-top: 24px;
+  border-top: 1px solid #f0f0f0;
+}
+
+/* 评审意见显示样式 */
+.review-comments-content {
+  margin-top: 16px;
+}
+
+.comments-text {
+  white-space: pre-line;
+  line-height: 1.6;
+  color: #262626;
+  background: #fafafa;
+  padding: 12px;
+  border-radius: 6px;
+  margin-top: 8px;
+}
+
+.resubmit-notice {
+  margin-bottom: 24px;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .midterm-application-submit {
+    padding: 16px;
+  }
+  
+  .page-header {
+    flex-direction: column;
+    gap: 16px;
+    align-items: stretch;
+  }
+  
+  .form-section {
+    padding: 24px 16px;
+  }
+  
+  .material-item {
+    padding: 16px;
+  }
+  
+  .uploaded-file {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  
+  .file-actions {
+    justify-content: flex-end;
+  }
+}

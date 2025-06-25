@@ -1,5 +1,10 @@
 <template>
-  <div class="budget-execution-page">
+  <div class="payment-container">
+    <div class="page-header">
+      <h1 class="page-title">经费执行进度</h1>
+      <div class="page-desc">项目资金管理，按角色划分填报与审核职责，实时监控预算执行情况</div>
+    </div>
+    
     <!-- 角色判断加载中 -->
     <div v-if="loading" class="loading-container">
       <a-spin size="large" />
@@ -7,8 +12,8 @@
     </div>
 
     <!-- 角色选择（开发调试用） -->
-    <div v-else-if="showRoleSelector" class="role-selector">
-      <a-card title="经费执行进度 - 角色选择" style="max-width: 400px; margin: 100px auto;">
+    <div v-else-if="showRoleSelector" class="content-area">
+      <a-card title="经费执行进度 - 角色选择" class="role-card">
         <p>系统检测到您有多个角色权限，请选择要使用的角色：</p>
         <a-radio-group v-model:value="selectedRole" style="width: 100%;">
           <a-radio-button value="reporter" style="width: 50%; text-align: center;">
@@ -89,9 +94,29 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.budget-execution-page {
-  min-height: 100vh;
-  background: #f5f8ff;
+.payment-container {
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 24px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+}
+
+.page-header {
+  margin-bottom: 24px;
+  border-bottom: 1px solid #f0f0f0;
+  padding-bottom: 16px;
+}
+
+.page-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: #262626;
+  margin-bottom: 8px;
+}
+
+.page-desc {
+  font-size: 14px;
+  color: #8c8c8c;
 }
 
 .loading-container {
@@ -99,7 +124,7 @@ onMounted(() => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 60vh;
+  height: 300px;
   color: #666;
 }
 
@@ -108,13 +133,35 @@ onMounted(() => {
   font-size: 16px;
 }
 
-.role-selector {
-  padding: 20px;
+.role-card {
+  max-width: 400px;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  margin: 0 auto;
 }
 
 .role-selector .ant-radio-button-wrapper {
   height: 60px;
   line-height: 60px;
   font-size: 16px;
+}
+
+/* 卡片样式 */
+:deep(.ant-card) {
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  border: none;
+}
+
+:deep(.ant-card-head) {
+  border-bottom: 1px solid #f0f0f0;
+  padding: 0 24px;
+}
+
+:deep(.ant-card-head-title) {
+  padding: 16px 0;
+  font-size: 16px;
+  font-weight: 600;
 }
 </style> 

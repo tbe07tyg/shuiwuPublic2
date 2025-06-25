@@ -159,6 +159,20 @@
           </a-form-item>
         </div>
 
+        <!-- 申请材料 -->
+        <div class="form-section">
+          <h3 class="section-title">申请材料</h3>
+          
+          <!-- 使用材料模板同步组件 -->
+          <MaterialTemplateSync
+            ref="materialTemplateSyncRef"
+            business-type="apply"
+            @files-change="handleFilesChange"
+            @validation-change="handleValidationChange"
+            @config-update="handleConfigUpdate"
+          />
+        </div>
+
         <!-- 操作按钮 -->
         <div class="form-actions">
           <a-space size="large">
@@ -180,11 +194,21 @@ import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
 import dayjs from 'dayjs'
+import MaterialTemplateSync from '@/components/MaterialTemplateSync.vue'
 
 const router = useRouter()
 const formRef = ref()
 const submitLoading = ref(false)
 const draftLoading = ref(false)
+const materialTemplateSyncRef = ref()
+
+// 材料模板同步相关状态
+const materialValidation = ref({
+  allRequiredUploaded: false,
+  uploadedCount: 0,
+  totalCount: 0
+})
+const uploadedMaterials = ref([])
 
 /**
  * 表单数据
@@ -334,6 +358,28 @@ function handleSaveDraft() {
   }, 1000)
 }
 
+// 材料模板同步组件事件处理
+function handleFilesChange(event) {
+  const { configId, file, action } = event
+  
+  if (action === 'add') {
+    uploadedMaterials.value.push({ configId, file })
+  } else if (action === 'remove') {
+    const index = uploadedMaterials.value.findIndex(item => item.configId === configId)
+    if (index > -1) {
+      uploadedMaterials.value.splice(index, 1)
+    }
+  }
+}
+
+function handleValidationChange(validation) {
+  materialValidation.value = validation
+}
+
+function handleConfigUpdate(configs) {
+  console.log('立项申请材料配置已更新:', configs)
+}
+
 /**
  * 提交表单
  */
@@ -345,13 +391,40 @@ function handleSubmit() {
     return
   }
 
+  // 验证必传材料是否已上传
+  if (!materialValidation.value.allRequiredUploaded) {
+    const validation = materialTemplateSyncRef.value?.validateRequiredFiles()
+    if (validation && !validation.valid) {
+      message.error(`请上传以下必传材料：${validation.missingFiles.join('、')}`)
+      return
+    }
+  }
+
   submitLoading.value = true
+  
+  // 获取所有上传的文件
+  const allUploadedFiles = materialTemplateSyncRef.value?.getAllUploadedFiles() || []
   
   setTimeout(() => {
     submitLoading.value = false
     
     // 生成项目编号
     const projectCode = `XM${new Date().getFullYear()}${String(Math.floor(Math.random() * 1000)).padStart(3, '0')}`
+    
+    // 构建提交数据（包含材料信息）
+    const submitData = {
+      ...form.value,
+      projectCode,
+      materials: allUploadedFiles.map(item => ({
+        configId: item.configId,
+        categoryName: item.config.categoryName,
+        fileName: item.file.name,
+        fileSize: item.file.size,
+        isRequired: item.config.isRequired
+      }))
+    }
+    
+    console.log('Project submit data:', submitData)
     
     message.success(`项目创建成功！项目编号：${projectCode}`)
     

@@ -434,7 +434,16 @@ const canCancel = (record) => {
 }
 
 const handleResubmitMaterial = (record) => {
-  router.push(`/midterm/application/submit?resubmit=${record.id}`)
+  router.push(`/implementation/midterm/Submit?type=resubmit&rejectionReason=${encodeURIComponent(record.rejectionInfo?.rejectionReason || '')}`)
+}
+
+const handleSubmitImprovement = (record) => {
+  let improvementRequirements = ''
+  if (record.conclusion && record.conclusion.requirements) {
+    improvementRequirements = record.conclusion.requirements
+  }
+  
+  router.push(`/implementation/midterm/Submit?type=improvement&improvementRequirements=${encodeURIComponent(improvementRequirements)}`)
 }
 
 const handleViewDetail = (record) => {
@@ -655,3 +664,5 @@ onMounted(() => {
   }
 }
 </style>
+
+

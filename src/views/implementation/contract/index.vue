@@ -1,52 +1,52 @@
 <template>
-  <div class="implementation-contract-page">
-    <!-- 页面头部 -->
+  <div class="contract-container">
     <div class="page-header">
-      <div class="header-content">
-        <h1 class="page-title">
-          <FileProtectOutlined /> 合同管理
-        </h1>
-        <p class="page-desc">管理项目合同文件，自动解析付款条款，集成OA流程与节点配置</p>
-      </div>
-      <div class="header-actions">
-        <a-select v-model:value="selectedProject" placeholder="选择项目" style="width: 220px; margin-right: 12px;" @change="handleProjectChange">
-          <a-select-option v-for="project in projects" :key="project.id" :value="project.id">{{ project.name }}</a-select-option>
-        </a-select>
-        <a-tag color="red">对接OA流程</a-tag>
-      </div>
+      <h1 class="page-title">合同管理</h1>
+      <div class="page-desc">管理项目合同文件，自动解析付款条款，集成OA流程与节点配置</div>
+    </div>
+    
+    <!-- 页面操作区 -->
+    <div class="action-bar">
+      <a-select v-model:value="selectedProject" placeholder="选择项目" style="width: 220px; margin-right: 12px;" @change="handleProjectChange">
+        <a-select-option v-for="project in projects" :key="project.id" :value="project.id">{{ project.name }}</a-select-option>
+      </a-select>
+      <a-tag color="red">对接OA流程</a-tag>
     </div>
 
-    <!-- 合同文件上传与管理区 -->
-    <a-card class="file-section" title="合同文件上传与管理">
-      <a-upload
-        :file-list="contractFileList"
-        :before-upload="beforeUploadContract"
-        :on-remove="onRemoveContract"
-        :max-count="1"
-      >
-        <a-button type="primary">上传合同文件</a-button>
-      </a-upload>
-      <div v-if="contractFileList.length">
-        <a-button type="link" @click="downloadContract">下载合同</a-button>
-      </div>
-      <!-- OA流程同步标记 -->
-      <a-tag color="red">合同文件与OA流程同步</a-tag>
-    </a-card>
+    <!-- 内容区域使用统一灰色背景 -->
+    <div class="content-area">
+      <!-- 合同文件上传与管理区 -->
+      <a-card class="file-section" title="合同文件上传与管理">
+        <a-upload
+          :file-list="contractFileList"
+          :before-upload="beforeUploadContract"
+          :on-remove="onRemoveContract"
+          :max-count="1"
+        >
+          <a-button type="primary">上传合同文件</a-button>
+        </a-upload>
+        <div v-if="contractFileList.length">
+          <a-button type="link" @click="downloadContract">下载合同</a-button>
+        </div>
+        <!-- OA流程同步标记 -->
+        <a-tag color="red">合同文件与OA流程同步</a-tag>
+      </a-card>
 
-    <!-- 付款条款自动解析区 -->
-    <a-card class="clause-section" title="付款条款自动解析">
-      <a-alert
-        message="系统将自动解析合同中的付款条款，生成项目节点配置建议。"
-        type="info"
-        show-icon
-      />
-      <a-button type="primary" @click="parseContractClauses">自动解析条款</a-button>
-      <a-table :columns="clauseColumns" :data-source="clauses" rowKey="id" bordered style="margin-top:16px;" />
-      <!-- 节点配置入口 -->
-      <a-button type="dashed" style="margin-top:16px;" @click="goToNodeConfig">
-        跳转到节点配置
-      </a-button>
-    </a-card>
+      <!-- 付款条款自动解析区 -->
+      <a-card class="clause-section" title="付款条款自动解析">
+        <a-alert
+          message="系统将自动解析合同中的付款条款，生成项目节点配置建议。"
+          type="info"
+          show-icon
+        />
+        <a-button type="primary" @click="parseContractClauses" style="margin-top: 16px;">自动解析条款</a-button>
+        <a-table :columns="clauseColumns" :data-source="clauses" rowKey="id" bordered style="margin-top:16px;" />
+        <!-- 节点配置入口 -->
+        <a-button type="dashed" style="margin-top:16px;" @click="goToNodeConfig">
+          跳转到节点配置
+        </a-button>
+      </a-card>
+    </div>
   </div>
 </template>
 
@@ -125,43 +125,60 @@ function handleProjectChange(value) {
 </script>
 
 <style scoped>
-.implementation-contract-page {
+.contract-container {
+  background-color: #fff;
+  border-radius: 8px;
   padding: 24px;
-  background: #f5f7fa;
-  min-height: 100vh;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
 }
+
 .page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
   margin-bottom: 24px;
-  background: #fff;
-  padding: 24px;
-  border-radius: 12px;
-  box-shadow: 0 2px 12px rgba(35,79,162,0.06);
+  border-bottom: 1px solid #f0f0f0;
+  padding-bottom: 16px;
 }
-.header-content {
-  flex: 1;
-}
+
 .page-title {
-  display: flex;
-  align-items: center;
-  gap: 12px;
   font-size: 24px;
-  color: #234fa2;
-  margin: 0 0 8px 0;
+  font-weight: 600;
+  color: #262626;
+  margin-bottom: 8px;
 }
+
 .page-desc {
-  color: #64748b;
-  margin: 0;
   font-size: 14px;
+  color: #8c8c8c;
 }
-.header-actions {
+
+.action-bar {
   display: flex;
-  gap: 12px;
+  justify-content: flex-start;
+  margin-bottom: 16px;
 }
-.file-section,
+
+.file-section {
+  margin-bottom: 16px;
+}
+
 .clause-section {
-  margin-bottom: 24px;
+  margin-bottom: 0;
+}
+
+/* 卡片样式 */
+:deep(.ant-card) {
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  border: none;
+}
+
+:deep(.ant-card-head) {
+  border-bottom: 1px solid #f0f0f0;
+  padding: 0 24px;
+}
+
+:deep(.ant-card-head-title) {
+  padding: 16px 0;
+  font-size: 16px;
+  font-weight: 600;
 }
 </style> 

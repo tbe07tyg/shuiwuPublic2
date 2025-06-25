@@ -4,21 +4,15 @@
  * @author 科研管理系统
  * @version 3.0.0
  * @date 2025-01-22
+ * @reference 严格遵循《页面统一风格设计规范.md》进行页面结构和样式优化
 -->
 <template>
-  <div class="acceptance-application-submit">
+  <div class="submit-container">
     <!-- 页面头部 -->
     <div class="page-header">
       <div class="header-content">
-        <h1 class="page-title">
-          <span class="title-icon">
-            <PlusOutlined />
-          </span>
-          {{ pageTitle }}
-        </h1>
-        <p class="page-description">
-          {{ pageDescription }}
-        </p>
+        <h1 class="page-title">{{ pageTitle }}</h1>
+        <p class="page-description">{{ pageDescription }}</p>
       </div>
       <div class="header-actions">
         <a-button @click="goBack">
@@ -29,7 +23,7 @@
     </div>
 
     <!-- 申请表单 -->
-    <div class="form-container">
+    <a-card :bordered="false">
       <a-form
         ref="formRef"
         :model="formData"
@@ -180,182 +174,81 @@
           </div>
         </div>
 
-        <!-- 材料上传 -->
-        <div class="form-section">
+        <!-- 评审意见显示 -->
+        <div v-if="(isResubmit || isImprovement) && reviewComments" class="form-section">
           <div class="section-header">
             <h3>
-              <CloudUploadOutlined />
-              验收材料
+              <ExclamationCircleOutlined />
+              {{ isImprovement ? '整改要求' : '审核意见' }}
             </h3>
-            <p>
-              {{ isImprovement ? '根据整改要求上传相关材料' : 
-                 isResubmit ? '重新上传项目验收所需的相关材料' : 
-                 '上传项目验收所需的相关材料' }}
-            </p>
-            <div v-if="isResubmit || isImprovement" class="resubmit-notice">
-              <a-alert
-                :message="isImprovement ? '整改材料提交' : '重新提交提醒'"
-                :description="isImprovement ? 
-                  '请根据验收会议的整改要求，上传相应的整改材料和说明文档。' : 
-                  '由于材料审核未通过，请根据审核意见重新准备并上传所有必需材料。'"
-                type="warning"
-                show-icon
-                style="margin-top: 12px"
-              />
-              
-              <!-- 显示审核意见或整改要求 -->
-              <div v-if="reviewComments" class="review-comments-section">
-                <h4>
-                  <ExclamationCircleOutlined style="color: #ff4d4f; margin-right: 8px" />
-                  {{ isImprovement ? '整改要求' : '审核驳回意见' }}
-                </h4>
-                <div class="review-comments-content">
-                  <pre>{{ reviewComments }}</pre>
-                </div>
-              </div>
-            </div>
+            <p>请仔细阅读以下{{ isImprovement ? '整改要求' : '审核意见' }}，并据此修改完善申请材料</p>
           </div>
-          <div class="section-content">
-            <!-- 必需材料 -->
-            <div class="material-group">
-              <h4>必需材料</h4>
-              <div class="material-list">
-                <div
-                  v-for="material in requiredMaterials"
-                  :key="material.key"
-                  class="material-item"
-                >
-                  <div class="material-info">
-                    <div class="material-name">
-                      {{ material.name }}
-                      <span class="required-mark">*</span>
-                    </div>
-                    <div class="material-desc">{{ material.description }}</div>
-                  </div>
-                  <div class="material-upload">
-                    <a-upload
-                      :file-list="material.fileList"
-                      :before-upload="() => false"
-                      @change="(info) => handleMaterialUpload(info, material.key)"
-                      accept=".pdf,.doc,.docx,.zip,.rar"
-                      :show-upload-list="false"
-                    >
-                      <a-button>
-                        <UploadOutlined />
-                        选择文件
-                      </a-button>
-                    </a-upload>
-                    
-                    <!-- 自定义文件列表 -->
-                    <div v-if="material.fileList.length > 0" class="file-list">
-                      <div v-for="file in material.fileList" :key="file.uid" class="file-item">
-                        <div class="file-info">
-                          <FileTextOutlined class="file-icon" />
-                          <span class="file-name">{{ file.name }}</span>
-                          <span class="file-size">{{ formatFileSize(file.size) }}</span>
-                        </div>
-                        <div class="file-actions">
-                          <a-button type="link" size="small" @click="previewMaterial(file)">
-                            预览
-                          </a-button>
-                          <a-button type="link" size="small" @click="downloadMaterial(file)">
-                            下载
-                          </a-button>
-                          <a-button type="link" size="small" danger @click="removeMaterial(material, file)">
-                            删除
-                          </a-button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- 可选材料 -->
-            <div class="material-group">
-              <h4>可选材料</h4>
-              <div class="material-list">
-                <div
-                  v-for="material in optionalMaterials"
-                  :key="material.key"
-                  class="material-item"
-                >
-                  <div class="material-info">
-                    <div class="material-name">{{ material.name }}</div>
-                    <div class="material-desc">{{ material.description }}</div>
-                  </div>
-                  <div class="material-upload">
-                    <a-upload
-                      :file-list="material.fileList"
-                      :before-upload="() => false"
-                      @change="(info) => handleMaterialUpload(info, material.key)"
-                      accept=".pdf,.doc,.docx,.zip,.rar"
-                      :show-upload-list="false"
-                    >
-                      <a-button>
-                        <UploadOutlined />
-                        选择文件
-                      </a-button>
-                    </a-upload>
-                    
-                    <!-- 自定义文件列表 -->
-                    <div v-if="material.fileList.length > 0" class="file-list">
-                      <div v-for="file in material.fileList" :key="file.uid" class="file-item">
-                        <div class="file-info">
-                          <FileTextOutlined class="file-icon" />
-                          <span class="file-name">{{ file.name }}</span>
-                          <span class="file-size">{{ formatFileSize(file.size) }}</span>
-                        </div>
-                        <div class="file-actions">
-                          <a-button type="link" size="small" @click="previewMaterial(file)">
-                            预览
-                          </a-button>
-                          <a-button type="link" size="small" @click="downloadMaterial(file)">
-                            下载
-                          </a-button>
-                          <a-button type="link" size="small" danger @click="removeMaterial(material, file)">
-                            删除
-                          </a-button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+          <div class="review-comments-content">
+            <a-alert
+              :message="isImprovement ? '验收会议整改要求' : '材料审核意见'"
+              :type="isImprovement ? 'warning' : 'error'"
+              show-icon
+            >
+              <template #description>
+                <div class="comments-text">{{ reviewComments }}</div>
+              </template>
+            </a-alert>
           </div>
         </div>
 
-        <!-- 提交操作 -->
+        <!-- 材料上传 -->
+        <div class="form-section">
+          <div v-if="isResubmit || isImprovement" class="resubmit-notice">
+            <a-alert
+              :message="isImprovement ? '整改材料提交' : '重新提交提醒'"
+              :description="isImprovement ? 
+                '请根据验收会议的整改要求，上传相应的整改材料和说明文档。' : 
+                '由于材料审核未通过，请根据审核意见重新准备并上传所有必需材料。'"
+              :type="isImprovement ? 'warning' : 'info'"
+              show-icon
+              style="margin-bottom: 16px"
+            />
+          </div>
+          
+          <!-- 使用材料模板同步组件 -->
+          <MaterialTemplateSync
+            ref="materialTemplateSyncRef"
+            business-type="acceptance"
+            @files-change="handleFilesChange"
+            @validation-change="handleValidationChange"
+            @config-update="handleConfigUpdate"
+          />
+        </div>
+
+        <!-- 表单操作 -->
         <div class="form-actions">
-          <a-space size="large">
-            <a-button size="large" @click="handleSaveDraft">
+          <a-space>
+            <a-button @click="handleSaveDraft">
               <SaveOutlined />
               保存草稿
             </a-button>
-            <a-button type="primary" size="large" html-type="submit" :loading="submitting">
+            <a-button type="primary" html-type="submit">
               <SendOutlined />
               提交申请
             </a-button>
           </a-space>
         </div>
       </a-form>
-    </div>
-
-    <!-- 文件预览弹窗 -->
-    <FilePreview
-      v-model:visible="previewVisible"
-      :file-info="currentPreviewFile"
-      @download="handleDownloadFile"
-    />
+    </a-card>
   </div>
 </template>
 
 <script setup>
 /**
  * 提交验收申请页面 - 申报单位角色
- * 功能：项目选择、申请信息填写、材料上传、申请提交
+ * 
+ * 本页面严格遵循《页面统一风格设计规范.md》中的规范要求：
+ * 1. 使用PageContainer作为页面最外层容器
+ * 2. 提供title和description作为PageContainer的属性
+ * 3. 将主要操作按钮放在actions插槽中
+ * 4. 内容区域使用统一的灰色背景
+ * 5. 卡片内容区域置于灰色背景之上
+ * 6. 统一使用Ant Design Vue组件和全局样式
  */
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
@@ -373,9 +266,19 @@ import {
 } from '@ant-design/icons-vue'
 import { message } from 'ant-design-vue'
 import FilePreview from '@/components/FilePreview.vue'
+import MaterialTemplateSync from '@/components/MaterialTemplateSync.vue'
 
 const router = useRouter()
 const formRef = ref()
+const materialTemplateSyncRef = ref()
+
+// 材料模板同步相关状态
+const materialValidation = ref({
+  allRequiredUploaded: false,
+  uploadedCount: 0,
+  totalCount: 0
+})
+const uploadedMaterials = ref([])
 
 // 判断是否是重新提交模式
 const isResubmit = computed(() => {
@@ -387,7 +290,10 @@ const isImprovement = computed(() => {
   return router.currentRoute.value.query.improvement === 'true'
 })
 
-// 页面标题
+/**
+ * 页面标题
+ * @type {ComputedRef<string>}
+ */
 const pageTitle = computed(() => {
   if (isImprovement.value) {
     return '提交整改材料'
@@ -398,7 +304,10 @@ const pageTitle = computed(() => {
   }
 })
 
-// 页面描述
+/**
+ * 页面描述
+ * @type {ComputedRef<string>}
+ */
 const pageDescription = computed(() => {
   if (isImprovement.value) {
     return '根据验收会议的整改要求，提交相应的整改材料和说明'
@@ -681,6 +590,35 @@ const handleSubmit = async (values) => {
   }
 }
 
+/**
+ * 处理材料文件变化
+ */
+const handleFilesChange = (data) => {
+  const { configId, file, action } = data
+  if (action === 'add') {
+    uploadedMaterials.value.push({ configId, file })
+  } else if (action === 'remove') {
+    const index = uploadedMaterials.value.findIndex(item => item.configId === configId)
+    if (index > -1) {
+      uploadedMaterials.value.splice(index, 1)
+    }
+  }
+}
+
+/**
+ * 处理验证状态变化
+ */
+const handleValidationChange = (validation) => {
+  materialValidation.value = validation
+}
+
+/**
+ * 处理配置更新
+ */
+const handleConfigUpdate = (configs) => {
+  console.log('验收材料配置已更新:', configs)
+}
+
 // 生命周期
 onMounted(() => {
   const route = router.currentRoute.value
@@ -757,143 +695,105 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.acceptance-application-submit {
-  padding: 24px;
-  background: #f5f5f5;
-  min-height: 100vh;
+.submit-container {
+  padding: 0;
 }
 
-/* 页面头部样式 */
 .page-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   margin-bottom: 24px;
-  padding: 24px;
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  padding: 0;
 }
 
-.header-content h1 {
-  margin: 0 0 8px 0;
+.header-content {
+  flex: 1;
+}
+
+.page-title {
   font-size: 24px;
   font-weight: 600;
   color: #262626;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.title-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  background: linear-gradient(135deg, #fa8c16 0%, #ffa940 100%);
-  border-radius: 12px;
-  color: #fff;
-  font-size: 18px;
+  margin: 0 0 8px 0;
 }
 
 .page-description {
-  margin: 0;
-  color: #8c8c8c;
   font-size: 14px;
+  color: #8c8c8c;
+  margin: 0;
 }
 
-/* 表单容器样式 */
-.form-container {
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-  overflow: hidden;
+.header-actions {
+  display: flex;
+  gap: 12px;
 }
 
-/* 表单分组样式 */
+/* 表单区域样式 */
 .form-section {
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.form-section:last-child {
-  border-bottom: none;
+  margin-bottom: 32px;
 }
 
 .section-header {
-  padding: 24px 24px 16px 24px;
-  background: #fafafa;
-  border-bottom: 1px solid #f0f0f0;
+  margin-bottom: 24px;
 }
 
 .section-header h3 {
-  margin: 0 0 8px 0;
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 600;
   color: #262626;
+  margin: 0 0 8px 0;
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
 .section-header p {
-  margin: 0;
-  font-size: 14px;
   color: #8c8c8c;
+  margin: 0;
 }
 
 .section-content {
-  padding: 24px;
+  margin-bottom: 16px;
 }
 
 /* 项目选择样式 */
+.selected-project-info {
+  margin-top: 16px;
+}
+
 .project-option {
   display: flex;
   flex-direction: column;
-  gap: 4px;
 }
 
 .project-name {
   font-weight: 500;
-  color: #262626;
 }
 
 .project-info {
   display: flex;
-  gap: 12px;
+  gap: 8px;
   font-size: 12px;
-}
-
-.project-code {
   color: #8c8c8c;
-}
-
-.project-status {
-  color: #fa8c16;
-}
-
-.selected-project-info {
-  margin-top: 16px;
-  padding: 16px;
-  background: #f8f9ff;
-  border: 1px solid #e6f7ff;
-  border-radius: 8px;
 }
 
 /* 材料上传样式 */
 .material-group {
-  margin-bottom: 32px;
-}
-
-.material-group:last-child {
-  margin-bottom: 0;
+  margin-bottom: 24px;
 }
 
 .material-group h4 {
-  margin: 0 0 16px 0;
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 16px;
+  font-weight: 500;
   color: #262626;
+  margin: 0 0 8px 0;
+}
+
+.material-tip {
+  color: #8c8c8c;
+  font-size: 13px;
+  margin: 0 0 16px 0;
 }
 
 .material-list {
@@ -908,19 +808,12 @@ onMounted(() => {
   align-items: flex-start;
   padding: 16px;
   background: #fafafa;
-  border: 1px solid #f0f0f0;
   border-radius: 8px;
-  transition: all 0.3s ease;
-}
-
-.material-item:hover {
-  background: #f8f9ff;
-  border-color: #d6e4ff;
+  border: 1px solid #f0f0f0;
 }
 
 .material-info {
   flex: 1;
-  margin-right: 16px;
 }
 
 .material-name {
@@ -929,149 +822,55 @@ onMounted(() => {
   margin-bottom: 4px;
 }
 
-.required-mark {
-  color: #ff4d4f;
-  margin-left: 4px;
-}
-
 .material-desc {
-  font-size: 12px;
+  font-size: 13px;
   color: #8c8c8c;
-  line-height: 1.4;
 }
 
 .material-upload {
-  flex-shrink: 0;
-}
-
-/* 文件列表样式 */
-.file-list {
-  margin-top: 12px;
-}
-
-.file-item {
+  min-width: 120px;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 8px 12px;
-  background: #fff;
-  border: 1px solid #d9d9d9;
-  border-radius: 6px;
-  margin-bottom: 8px;
-  transition: all 0.3s ease;
+  justify-content: flex-end;
 }
 
-.file-item:last-child {
-  margin-bottom: 0;
-}
-
-.file-item:hover {
-  border-color: #40a9ff;
-  background: #f0f9ff;
-}
-
-.file-info {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex: 1;
-}
-
-.file-icon {
-  color: #1890ff;
-  font-size: 14px;
-}
-
-.file-name {
-  color: #262626;
-  font-size: 14px;
-  font-weight: 500;
-}
-
-.file-size {
-  color: #8c8c8c;
-  font-size: 12px;
-  margin-left: 8px;
-}
-
-.file-actions {
-  display: flex;
-  gap: 4px;
-}
-
-/* 审核意见样式 */
-.review-comments-section {
-  margin-top: 16px;
-  padding: 16px;
-  background: #fff2f0;
-  border: 1px solid #ffccc7;
-  border-radius: 8px;
-}
-
-.review-comments-section h4 {
-  margin: 0 0 12px 0;
-  font-size: 14px;
-  font-weight: 600;
-  color: #ff4d4f;
-  display: flex;
-  align-items: center;
-}
-
+/* 评审意见显示样式 */
 .review-comments-content {
-  background: #fff;
-  padding: 12px;
-  border-radius: 6px;
-  border: 1px solid #f0f0f0;
+  margin-top: 16px;
 }
 
-.review-comments-content pre {
-  margin: 0;
-  font-family: inherit;
-  font-size: 14px;
+.comments-text {
+  white-space: pre-line;
   line-height: 1.6;
   color: #262626;
-  white-space: pre-wrap;
-  word-wrap: break-word;
+  background: #fafafa;
+  padding: 12px;
+  border-radius: 6px;
+  margin-top: 8px;
 }
 
-/* 表单操作样式 */
+/* 重新提交提醒样式 */
+.resubmit-notice {
+  margin-top: 16px;
+}
+
+/* 表单操作区域 */
 .form-actions {
-  padding: 24px;
-  background: #fafafa;
-  border-top: 1px solid #f0f0f0;
   display: flex;
   justify-content: center;
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid #f0f0f0;
 }
 
-/* 响应式设计 */
+/* 响应式适配 */
 @media (max-width: 768px) {
-  .acceptance-application-submit {
-    padding: 16px;
-  }
-  
-  .page-header {
-    flex-direction: column;
-    gap: 16px;
-    align-items: stretch;
-  }
-  
   .material-item {
     flex-direction: column;
-    gap: 12px;
-    align-items: stretch;
+    gap: 16px;
   }
   
-  .material-info {
-    margin-right: 0;
-  }
-  
-  .form-actions {
-    padding: 16px;
-  }
-  
-  .form-actions .ant-space {
+  .material-upload {
     width: 100%;
-    justify-content: center;
+    justify-content: flex-start;
   }
 }
-</style> 

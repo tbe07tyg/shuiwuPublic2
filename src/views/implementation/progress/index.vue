@@ -1,231 +1,231 @@
 <template>
-  <div class="progress-monitor-page">
-    <!-- 页面头部 -->
+  <div class="progress-container">
     <div class="page-header">
-      <div class="header-content">
-        <h1 class="page-title">
-          <ClockCircleOutlined /> 进度监控
-        </h1>
-        <p class="page-desc">基于时间维度监控项目实施进度，实时跟踪节点状态与材料提交</p>
-      </div>
-      <div class="header-actions">
-        <a-select 
-          v-model:value="selectedProject" 
-          placeholder="选择项目进行监控" 
-          style="width: 280px;"
-          @change="handleProjectChange"
-          size="large"
-        >
-          <a-select-option v-for="project in projects" :key="project.id" :value="project.id">
-            <div class="project-option">
-              <div class="project-name">{{ project.name }}</div>
-              <div class="project-info">{{ project.leader }} · {{ project.startDate }}</div>
-            </div>
-          </a-select-option>
-        </a-select>
-      </div>
+      <h1 class="page-title">进度监控</h1>
+      <div class="page-desc">基于时间维度监控项目实施进度，实时跟踪节点状态与材料提交</div>
+    </div>
+    
+    <!-- 页面操作区 -->
+    <div class="action-bar">
+      <a-select 
+        v-model:value="selectedProject" 
+        placeholder="选择项目进行监控" 
+        style="width: 280px;"
+        @change="handleProjectChange"
+        size="large"
+      >
+        <a-select-option v-for="project in projects" :key="project.id" :value="project.id">
+          <div class="project-option">
+            <div class="project-name">{{ project.name }}</div>
+            <div class="project-info">{{ project.leader }} · {{ project.startDate }}</div>
+          </div>
+        </a-select-option>
+      </a-select>
     </div>
 
-    <!-- 项目基本信息 -->
-    <a-card v-if="currentProject" class="project-info-card" size="small">
-      <div class="project-header">
-        <div class="project-basic">
-          <h3>{{ currentProject.name }}</h3>
-          <a-space>
-            <a-tag color="blue">{{ currentProject.type }}</a-tag>
-            <a-tag color="green">{{ currentProject.status }}</a-tag>
-          </a-space>
-        </div>
-        <div class="project-stats">
-          <div class="stat-item">
-            <div class="stat-label">项目负责人</div>
-            <div class="stat-value">{{ currentProject.leader }}</div>
+    <!-- 内容区域使用统一灰色背景 -->
+    <div class="content-area" v-if="currentProject">
+      <!-- 项目基本信息 -->
+      <a-card class="project-info-card" size="small">
+        <div class="project-header">
+          <div class="project-basic">
+            <h3>{{ currentProject.name }}</h3>
+            <a-space>
+              <a-tag color="blue">{{ currentProject.type }}</a-tag>
+              <a-tag color="green">{{ currentProject.status }}</a-tag>
+            </a-space>
           </div>
-          <div class="stat-item">
-            <div class="stat-label">立项时间</div>
-            <div class="stat-value">{{ currentProject.approvalDate }}</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-label">整体进度</div>
-            <div class="stat-value">{{ overallProgress }}%</div>
-          </div>
-        </div>
-      </div>
-    </a-card>
-
-    <!-- 项目进度条 -->
-    <a-card v-if="currentProject" class="progress-overview-card" size="small">
-      <div class="progress-overview">
-        <div class="progress-header">
-          <h4>项目整体进度</h4>
-          <div class="progress-stats">
-            <span class="progress-text">{{ overallProgress }}% 完成</span>
-            <span class="progress-detail">{{ completedNodesCount }}/{{ totalNodesCount }} 节点</span>
-          </div>
-        </div>
-        <a-progress 
-          :percent="overallProgress" 
-          :stroke-color="{
-            '0%': '#108ee9',
-            '100%': '#87d068',
-          }"
-          :trail-color="'#f0f0f0'"
-          stroke-width="8"
-          :show-info="false"
-        />
-        <div class="progress-milestones">
-          <div class="milestone-item" v-for="(milestone, index) in progressMilestones" :key="index">
-            <div class="milestone-dot" :class="milestone.status"></div>
-            <div class="milestone-info">
-              <div class="milestone-name">{{ milestone.name }}</div>
-              <div class="milestone-date">{{ milestone.date || '待定' }}</div>
+          <div class="project-stats">
+            <div class="stat-item">
+              <div class="stat-label">项目负责人</div>
+              <div class="stat-value">{{ currentProject.leader }}</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-label">立项时间</div>
+              <div class="stat-value">{{ currentProject.approvalDate }}</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-label">整体进度</div>
+              <div class="stat-value">{{ overallProgress }}%</div>
             </div>
           </div>
         </div>
-      </div>
-    </a-card>
+      </a-card>
 
-    <!-- 进度时间轴 -->
-    <a-card v-if="currentProject" class="timeline-card" title="项目实施进度时间轴">
-      <div class="timeline-container">
-        <div class="timeline-wrapper">
-          <!-- 实施节点 - 反向显示 -->
-          <div 
-            v-for="(node, index) in reversedProgressNodes" 
-            :key="node.id"
-            class="timeline-item"
-            :class="getNodeClass(node)"
-          >
-            <div class="timeline-dot" :class="getNodeDotClass(node)">
-              <component :is="getNodeIcon(node)" />
+      <!-- 项目进度条 -->
+      <a-card class="progress-overview-card" size="small">
+        <div class="progress-overview">
+          <div class="progress-header">
+            <h4>项目整体进度</h4>
+            <div class="progress-stats">
+              <span class="progress-text">{{ overallProgress }}% 完成</span>
+              <span class="progress-detail">{{ completedNodesCount }}/{{ totalNodesCount }} 节点</span>
             </div>
-            <div class="timeline-content">
-              <div class="node-header">
-                <h4>{{ node.name }}</h4>
-                <div class="node-status" :class="node.status">
-                  {{ getStatusText(node.status) }}
-                </div>
+          </div>
+          <a-progress 
+            :percent="overallProgress" 
+            :stroke-color="{
+              '0%': '#108ee9',
+              '100%': '#87d068',
+            }"
+            :trail-color="'#f0f0f0'"
+            stroke-width="8"
+            :show-info="false"
+          />
+          <div class="progress-milestones">
+            <div class="milestone-item" v-for="(milestone, index) in progressMilestones" :key="index">
+              <div class="milestone-dot" :class="milestone.status"></div>
+              <div class="milestone-info">
+                <div class="milestone-name">{{ milestone.name }}</div>
+                <div class="milestone-date">{{ milestone.date || '待定' }}</div>
               </div>
-              
-              <!-- 时间信息 -->
-              <div class="node-time">
-                <template v-if="node.scheduledDate">
-                  <CalendarOutlined />
-                  <span v-if="node.status === 'completed'">完成时间：{{ node.completedDate }}</span>
-                  <span v-else-if="node.status === 'overdue'">截止时间：{{ node.scheduledDate }} (已超期)</span>
-                  <span v-else>截止时间：{{ node.scheduledDate }}</span>
-                </template>
-                <template v-else>
-                  <ClockCircleOutlined />
-                  <span class="pending-time">等待确定时间</span>
-                </template>
+            </div>
+          </div>
+        </div>
+      </a-card>
+
+      <!-- 进度时间轴 -->
+      <a-card class="timeline-card" title="项目实施进度时间轴">
+        <div class="timeline-container">
+          <div class="timeline-wrapper">
+            <!-- 实施节点 - 反向显示 -->
+            <div 
+              v-for="(node, index) in reversedProgressNodes" 
+              :key="node.id"
+              class="timeline-item"
+              :class="getNodeClass(node)"
+            >
+              <div class="timeline-dot" :class="getNodeDotClass(node)">
+                <component :is="getNodeIcon(node)" />
               </div>
-
-              <!-- 节点描述 -->
-              <div class="node-desc">{{ node.description }}</div>
-
-              <!-- 材料提交状态 -->
-              <div v-if="node.type === 'submission'" class="materials-section">
-                <div class="materials-header">
-                  <FileTextOutlined />
-                  <span>提交材料</span>
-                </div>
-                <div v-if="node.materials && node.materials.length" class="materials-list">
-                  <div 
-                    v-for="material in node.materials" 
-                    :key="material.id"
-                    class="material-item"
-                    :class="material.status"
-                  >
-                    <div class="material-info">
-                      <PaperClipOutlined />
-                      <span class="material-name">{{ material.name }}</span>
-                      <a-tag :color="getMaterialStatusColor(material.status)" size="small">
-                        {{ getMaterialStatusText(material.status) }}
-                      </a-tag>
-                    </div>
-                    <div class="material-actions">
-                      <a-button 
-                        type="link" 
-                        size="small" 
-                        @click="downloadMaterial(material)"
-                        v-if="material.status !== 'pending'"
-                      >
-                        <DownloadOutlined /> 下载
-                      </a-button>
-                      <a-button 
-                        type="link" 
-                        size="small" 
-                        danger
-                        @click="rejectMaterial(material, node)"
-                        v-if="material.status === 'submitted'"
-                      >
-                        <CloseOutlined /> 打回
-                      </a-button>
-                    </div>
+              <div class="timeline-content">
+                <div class="node-header">
+                  <h4>{{ node.name }}</h4>
+                  <div class="node-status" :class="node.status">
+                    {{ getStatusText(node.status) }}
                   </div>
                 </div>
-                <div v-else class="no-materials">
-                  <ExclamationCircleOutlined />
-                  <span>暂无材料提交</span>
+                
+                <!-- 时间信息 -->
+                <div class="node-time">
+                  <template v-if="node.scheduledDate">
+                    <CalendarOutlined />
+                    <span v-if="node.status === 'completed'">完成时间：{{ node.completedDate }}</span>
+                    <span v-else-if="node.status === 'overdue'">截止时间：{{ node.scheduledDate }} (已超期)</span>
+                    <span v-else>截止时间：{{ node.scheduledDate }}</span>
+                  </template>
+                  <template v-else>
+                    <ClockCircleOutlined />
+                    <span class="pending-time">等待确定时间</span>
+                  </template>
+                </div>
+
+                <!-- 节点描述 -->
+                <div class="node-desc">{{ node.description }}</div>
+
+                <!-- 材料提交状态 -->
+                <div v-if="node.type === 'submission'" class="materials-section">
+                  <div class="materials-header">
+                    <FileTextOutlined />
+                    <span>提交材料</span>
+                  </div>
+                  <div v-if="node.materials && node.materials.length" class="materials-list">
+                    <div 
+                      v-for="material in node.materials" 
+                      :key="material.id"
+                      class="material-item"
+                      :class="material.status"
+                    >
+                      <div class="material-info">
+                        <PaperClipOutlined />
+                        <span class="material-name">{{ material.name }}</span>
+                        <a-tag :color="getMaterialStatusColor(material.status)" size="small">
+                          {{ getMaterialStatusText(material.status) }}
+                        </a-tag>
+                      </div>
+                      <div class="material-actions">
+                        <a-button 
+                          type="link" 
+                          size="small" 
+                          @click="downloadMaterial(material)"
+                          v-if="material.status !== 'pending'"
+                        >
+                          <DownloadOutlined /> 下载
+                        </a-button>
+                        <a-button 
+                          type="link" 
+                          size="small" 
+                          danger
+                          @click="rejectMaterial(material, node)"
+                          v-if="material.status === 'submitted'"
+                        >
+                          <CloseOutlined /> 打回
+                        </a-button>
+                      </div>
+                    </div>
+                  </div>
+                  <div v-else class="no-materials">
+                    <ExclamationCircleOutlined />
+                    <span>暂无材料提交</span>
+                  </div>
+                </div>
+
+                <!-- 操作按钮 -->
+                <div class="node-actions">
+                  <!-- 提醒按钮 -->
+                  <a-button 
+                    v-if="shouldShowReminder(node)"
+                    type="primary"
+                    size="small"
+                    @click="sendReminder(node)"
+                    :loading="reminderLoading[node.id]"
+                  >
+                    <BellOutlined /> 提醒
+                  </a-button>
+                  
+                  <!-- 催办按钮 -->
+                  <a-button 
+                    v-if="shouldShowUrge(node)"
+                    type="primary"
+                    danger
+                    size="small"
+                    @click="sendUrge(node)"
+                    :loading="urgeLoading[node.id]"
+                  >
+                    <AlertOutlined /> 催办
+                  </a-button>
+
+                  <!-- 设置时间按钮 -->
+                  <a-button 
+                    v-if="!node.scheduledDate && node.status === 'waiting'"
+                    type="default"
+                    size="small"
+                    @click="setNodeTime(node)"
+                  >
+                    <CalendarOutlined /> 设置时间
+                  </a-button>
                 </div>
               </div>
-
-              <!-- 操作按钮 -->
-              <div class="node-actions">
-                <!-- 提醒按钮 -->
-                <a-button 
-                  v-if="shouldShowReminder(node)"
-                  type="primary"
-                  size="small"
-                  @click="sendReminder(node)"
-                  :loading="reminderLoading[node.id]"
-                >
-                  <BellOutlined /> 提醒
-                </a-button>
-                
-                <!-- 催办按钮 -->
-                <a-button 
-                  v-if="shouldShowUrge(node)"
-                  type="primary"
-                  danger
-                  size="small"
-                  @click="sendUrge(node)"
-                  :loading="urgeLoading[node.id]"
-                >
-                  <AlertOutlined /> 催办
-                </a-button>
-
-                <!-- 设置时间按钮 -->
-                <a-button 
-                  v-if="!node.scheduledDate && node.status === 'waiting'"
-                  type="default"
-                  size="small"
-                  @click="setNodeTime(node)"
-                >
-                  <CalendarOutlined /> 设置时间
-                </a-button>
-              </div>
             </div>
-          </div>
 
-          <!-- 立项节点 - 放在最后（时间顺序最早） -->
-          <div class="timeline-item approval-node">
-            <div class="timeline-dot completed">
-              <CheckCircleOutlined />
-            </div>
-            <div class="timeline-content">
-              <div class="node-header">
-                <h4>项目立项</h4>
-                <div class="node-status completed">已完成</div>
+            <!-- 立项节点 - 放在最后（时间顺序最早） -->
+            <div class="timeline-item approval-node">
+              <div class="timeline-dot completed">
+                <CheckCircleOutlined />
               </div>
-              <div class="node-time">{{ currentProject.approvalDate }}</div>
-              <div class="node-desc">项目立项审批通过，正式启动</div>
+              <div class="timeline-content">
+                <div class="node-header">
+                  <h4>项目立项</h4>
+                  <div class="node-status completed">已完成</div>
+                </div>
+                <div class="node-time">{{ currentProject.approvalDate }}</div>
+                <div class="node-desc">项目立项审批通过，正式启动</div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    </a-card>
+      </a-card>
+    </div>
 
     <!-- 空状态 -->
     <a-empty v-if="!selectedProject" description="请选择项目查看进度监控">
@@ -689,57 +689,82 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.progress-monitor-page {
+.progress-container {
+  background-color: #fff;
+  border-radius: 8px;
   padding: 24px;
-  background: #f5f8ff;
-  min-height: 100vh;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
 }
 
 .page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
   margin-bottom: 24px;
-  background: #fff;
-  padding: 24px;
-  border-radius: 12px;
-  box-shadow: 0 2px 12px rgba(35,79,162,0.06);
-}
-
-.header-content {
-  flex: 1;
+  border-bottom: 1px solid #f0f0f0;
+  padding-bottom: 16px;
 }
 
 .page-title {
-  display: flex;
-  align-items: center;
-  gap: 12px;
   font-size: 24px;
-  color: #234fa2;
-  margin: 0 0 8px 0;
+  font-weight: 600;
+  color: #262626;
+  margin-bottom: 8px;
 }
 
 .page-desc {
-  color: #64748b;
-  margin: 0;
   font-size: 14px;
+  color: #8c8c8c;
 }
 
-.project-option {
-  .project-name {
-    font-weight: 500;
-    color: #333;
-  }
-  
-  .project-info {
-    font-size: 12px;
-    color: #999;
-    margin-top: 2px;
-  }
+.action-bar {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 16px;
+}
+
+.content-area {
+  background-color: #f5f5f5;
+  padding: 16px;
+  border-radius: 8px;
+  margin-bottom: 24px;
 }
 
 .project-info-card {
-  margin-bottom: 24px;
+  margin-bottom: 16px;
+}
+
+.progress-overview-card {
+  margin-bottom: 16px;
+}
+
+.project-option {
+  display: flex;
+  flex-direction: column;
+}
+
+.project-name {
+  font-weight: 500;
+}
+
+.project-info {
+  font-size: 12px;
+  color: #999;
+}
+
+/* 卡片样式 */
+:deep(.ant-card) {
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  border: none;
+}
+
+:deep(.ant-card-head) {
+  border-bottom: 1px solid #f0f0f0;
+  padding: 0 24px;
+}
+
+:deep(.ant-card-head-title) {
+  padding: 16px 0;
+  font-size: 16px;
+  font-weight: 600;
 }
 
 .project-header {
@@ -748,11 +773,9 @@ onMounted(() => {
   align-items: flex-start;
 }
 
-.project-basic {
-  h3 {
-    margin: 0 0 8px 0;
-    color: #234fa2;
-  }
+.project-basic h3 {
+  margin: 0 0 8px 0;
+  color: #234fa2;
 }
 
 .project-stats {
@@ -762,244 +785,18 @@ onMounted(() => {
 
 .stat-item {
   text-align: center;
-  
-  .stat-label {
-    font-size: 12px;
-    color: #999;
-    margin-bottom: 4px;
-  }
-  
-  .stat-value {
-    font-size: 16px;
-    font-weight: 600;
-    color: #333;
-  }
 }
 
-.timeline-card {
-  margin-bottom: 24px;
-}
-
-.timeline-container {
-  padding: 20px 0;
-}
-
-.timeline-wrapper {
-  position: relative;
-  
-  &::before {
-    content: '';
-    position: absolute;
-    left: 20px;
-    top: 0;
-    bottom: 0;
-    width: 2px;
-    background: linear-gradient(to bottom, #52c41a, #1890ff, #faad14, #f5222d);
-  }
-}
-
-.timeline-item {
-  position: relative;
-  padding-left: 60px;
-  margin-bottom: 40px;
-  
-  &:last-child {
-    margin-bottom: 0;
-  }
-}
-
-.timeline-dot {
-  position: absolute;
-  left: 10px;
-  top: 8px;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.stat-label {
   font-size: 12px;
-  color: #fff;
-  z-index: 2;
-  
-  &.completed {
-    background: #52c41a;
-  }
-  
-  &.in-progress {
-    background: #1890ff;
-  }
-  
-  &.overdue {
-    background: #f5222d;
-  }
-  
-  &.waiting {
-    background: #d9d9d9;
-    color: #999;
-  }
-}
-
-.timeline-content {
-  background: #fff;
-  border-radius: 8px;
-  padding: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-  border-left: 4px solid #e8e8e8;
-  
-  .completed-node & {
-    border-left-color: #52c41a;
-  }
-  
-  .in-progress-node & {
-    border-left-color: #1890ff;
-  }
-  
-  .overdue-node & {
-    border-left-color: #f5222d;
-  }
-}
-
-.node-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
-  
-  h4 {
-    margin: 0;
-    color: #333;
-    font-size: 16px;
-  }
-}
-
-.node-status {
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 12px;
-  font-weight: 500;
-  
-  &.completed {
-    background: #f6ffed;
-    color: #52c41a;
-    border: 1px solid #b7eb8f;
-  }
-  
-  &.in-progress {
-    background: #e6f7ff;
-    color: #1890ff;
-    border: 1px solid #91d5ff;
-  }
-  
-  &.overdue {
-    background: #fff2e8;
-    color: #f5222d;
-    border: 1px solid #ffbb96;
-  }
-  
-  &.waiting {
-    background: #f5f5f5;
-    color: #999;
-    border: 1px solid #d9d9d9;
-  }
-}
-
-.node-time {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  color: #666;
-  font-size: 14px;
-  margin-bottom: 8px;
-  
-  .pending-time {
-    color: #faad14;
-    font-style: italic;
-  }
-}
-
-.node-desc {
-  color: #666;
-  font-size: 14px;
-  margin-bottom: 16px;
-}
-
-.materials-section {
-  background: #fafafa;
-  border-radius: 6px;
-  padding: 16px;
-  margin-bottom: 16px;
-}
-
-.materials-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-weight: 500;
-  color: #333;
-  margin-bottom: 12px;
-}
-
-.materials-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.material-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 8px 12px;
-  background: #fff;
-  border-radius: 4px;
-  border: 1px solid #e8e8e8;
-  
-  &.rejected {
-    border-color: #ffccc7;
-    background: #fff2f0;
-  }
-}
-
-.material-info {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex: 1;
-}
-
-.material-name {
-  color: #333;
-  font-size: 14px;
-}
-
-.material-actions {
-  display: flex;
-  gap: 8px;
-}
-
-.no-materials {
-  display: flex;
-  align-items: center;
-  gap: 8px;
   color: #999;
-  font-style: italic;
-  padding: 16px;
-  text-align: center;
-  justify-content: center;
+  margin-bottom: 4px;
 }
 
-.node-actions {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.approval-node {
-  .timeline-content {
-    border-left-color: #52c41a;
-    background: linear-gradient(135deg, #f6ffed 0%, #fff 100%);
-  }
+.stat-value {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
 }
 
 /* 进度概览卡片样式 */
@@ -1090,5 +887,204 @@ onMounted(() => {
       }
     }
   }
+}
+
+.timeline-container {
+  position: relative;
+  padding: 24px 0 24px 48px;
+  background: #fff;
+}
+
+.timeline-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.timeline-item {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  min-height: 40px;
+}
+
+.timeline-item:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  left: 15px;
+  top: 32px;
+  width: 2px;
+  height: calc(100% - 12px);
+  background: linear-gradient(180deg, #e5e9f2 0%, #f0f3f8 100%);
+  z-index: 0;
+}
+
+.timeline-dot {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #234fa2 0%, #4a7bc8 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 14px;
+  margin-right: 20px;
+  margin-top: 0px;
+  box-shadow: 0 4px 12px rgba(35, 79, 162, 0.15);
+  z-index: 1;
+  position: relative;
+}
+.timeline-dot.completed {
+  background: linear-gradient(135deg, #52c41a 0%, #73d13d 100%);
+  box-shadow: 0 4px 12px rgba(82, 196, 26, 0.15);
+}
+.timeline-dot.in-progress {
+  background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%);
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.15);
+}
+.timeline-dot.overdue {
+  background: linear-gradient(135deg, #f5222d 0%, #ff4d4f 100%);
+  box-shadow: 0 4px 12px rgba(245, 34, 45, 0.15);
+}
+.timeline-dot.waiting {
+  background: linear-gradient(135deg, #d9d9d9 0%, #f0f0f0 100%);
+  color: #8c8c8c;
+  box-shadow: 0 4px 12px rgba(217, 217, 217, 0.15);
+}
+
+.timeline-content {
+  flex: 1;
+  background: linear-gradient(135deg, #f8fafd 0%, #ffffff 100%);
+  border-radius: 12px;
+  padding: 16px 20px;
+  box-shadow: 0 4px 16px rgba(35, 79, 162, 0.08);
+  border: 1px solid #e8f0fe;
+  margin-top: -4px;
+}
+
+.node-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.node-header h4 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #234fa2;
+  margin: 0;
+}
+.node-status {
+  font-size: 12px;
+  border-radius: 12px;
+  padding: 3px 10px;
+  background: #e8f0fe;
+  color: #234fa2;
+  font-weight: 500;
+  border: 1px solid #d6e4ff;
+}
+.node-status.completed {
+  background: #f6ffed;
+  color: #52c41a;
+  border-color: #b7eb8f;
+}
+.node-status.in-progress {
+  background: #e6f7ff;
+  color: #1890ff;
+  border-color: #91d5ff;
+}
+.node-status.overdue {
+  background: #fff1f0;
+  color: #f5222d;
+  border-color: #ffa39e;
+}
+.node-status.waiting {
+  background: #fafafa;
+  color: #8c8c8c;
+  border-color: #d9d9d9;
+}
+
+.node-time {
+  font-size: 13px;
+  color: #8c8c8c;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.node-desc {
+  font-size: 14px;
+  color: #595959;
+  margin-bottom: 8px;
+  line-height: 1.5;
+}
+
+.materials-section {
+  margin: 8px 0 8px 0;
+  padding: 12px;
+  background: #fafbfc;
+  border-radius: 8px;
+  border: 1px solid #f0f0f0;
+}
+.materials-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #595959;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+.materials-list {
+  margin-top: 4px;
+}
+.material-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 0;
+  border-bottom: 1px solid #f5f5f5;
+}
+.material-item:last-child {
+  border-bottom: none;
+}
+.material-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+.material-name {
+  font-size: 13px;
+  color: #262626;
+}
+.material-actions {
+  display: flex;
+  gap: 8px;
+}
+.no-materials {
+  color: #bfbfbf;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-style: italic;
+}
+
+.node-actions {
+  margin-top: 12px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.timeline-content span {
+  font-size: 14px !important;
+  font-weight: 400 !important;
+  color: #333 !important;
+  padding: 0 !important;
 }
 </style>

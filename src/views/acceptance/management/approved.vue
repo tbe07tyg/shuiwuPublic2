@@ -1,16 +1,5 @@
 <template>
-  <div class="approval-decision-page">
-    <!-- 页面头部 -->
-    <div class="page-header">
-      <div class="header-content">
-        <h1 class="page-title">
-          <AuditOutlined /> 已立项的项目
-        </h1>
-        <p class="page-desc">展示所有已通过立项审批的项目，支持过会结果导入智能解析</p>
-      </div>
-      <div class="header-actions"></div>
-    </div>
-
+  <PageContainer title="已立项的项目" description="展示所有已通过立项审批的项目，支持过会结果导入智能解析">
     <!-- 已立项项目清单表格 -->
     <a-card class="list-section">
       <template #title>
@@ -32,7 +21,7 @@
         </template>
       </a-table>
     </a-card>
-  </div>
+  </PageContainer>
 </template>
 
 <script setup>
@@ -40,6 +29,7 @@ import { ref, computed } from 'vue'
 import { AuditOutlined } from '@ant-design/icons-vue'
 import { message } from 'ant-design-vue'
 import { useApprovalStore } from '@/store/approval'
+import PageContainer from '@/components/PageContainer.vue'
 
 const approvalStore = useApprovalStore()
 
@@ -74,41 +64,9 @@ function handleImport(record) {
 </script>
 
 <style scoped>
-.approval-decision-page {
-  padding: 24px;
-  background: #f5f7fa;
-  min-height: 100vh;
-}
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 24px;
-  background: #fff;
-  padding: 24px;
-  border-radius: 12px;
-  box-shadow: 0 2px 12px rgba(35,79,162,0.06);
-}
-.header-content {
-  flex: 1;
-}
-.page-title {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-size: 24px;
-  color: #234fa2;
-  margin: 0 0 8px 0;
-}
-.page-desc {
-  color: #64748b;
-  margin: 0;
-  font-size: 14px;
-}
-.header-actions {
-  display: flex;
-  gap: 12px;
-}
+/**
+ * 所有页面默认样式已由PageContainer提供
+ */
 .list-section {
   margin-top: 24px;
 }
