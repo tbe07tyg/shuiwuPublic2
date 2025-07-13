@@ -964,3 +964,4 @@ onMounted(() => {
     gap: 8px;
   }
 }
+</style>

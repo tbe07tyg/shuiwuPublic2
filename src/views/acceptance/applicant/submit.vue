@@ -874,3 +874,4 @@ onMounted(() => {
     justify-content: flex-start;
   }
 }
+</style>
