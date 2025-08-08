@@ -3,7 +3,7 @@
     <a-menu
       mode="inline"
       :selectedKeys="selectedKey"
-      :openKeys="openKeys"
+      :openKeys="filteredOpenKeys"
       @openChange="onOpenChange"
       class="main-sider"
       @click="onMenuClick"
@@ -15,33 +15,12 @@
       :overflowedIndicator="null"
     >
       <!-- 一级菜单项 -->
-      <a-menu-item key="dashboard">
-        <DashboardOutlined />
-        <span>工作台</span>
-      </a-menu-item>
-      
-      <!-- 一级菜单：项目管理 -->
-      <a-sub-menu key="project" data-menu-id="project">
+      <!-- 项目管理主菜单（隐藏） -->
+      <a-sub-menu key="project" data-menu-id="project" v-if="false">
         <template #title>
           <ProjectOutlined />
           <span>项目管理</span>
         </template>
-        
-        <!-- 项目调研 -->
-        <a-sub-menu key="project-research" data-menu-id="project-research">
-          <template #title>
-            <SearchOutlined />
-            <span>项目调研</span>
-          </template>
-          <a-menu-item key="research-requirements">
-            <DatabaseOutlined />
-            <span>需求池管理</span>
-          </a-menu-item>
-          <a-menu-item key="research-results">
-            <FileTextOutlined />
-            <span>调研记录</span>
-          </a-menu-item>
-        </a-sub-menu>
         
         <!-- 项目立项 -->
         <a-menu-item key="project-approval">
@@ -56,19 +35,16 @@
             <span>项目实施</span>
           </template>
           
-          <!-- 项目开题 - 调整为二级菜单项 -->
           <a-menu-item key="implementation-opening" class="implementation-sub-item">
             <RocketOutlined />
             <span>项目开题</span>
           </a-menu-item>
           
-          <!-- 项目中期 - 调整为二级菜单项 -->
           <a-menu-item key="implementation-midterm" class="implementation-sub-item">
             <PieChartOutlined />
             <span>项目中期</span>
           </a-menu-item>
           
-          <!-- 其它菜单项保持不变 -->
           <a-menu-item key="implementation-contract" class="implementation-sub-item">
             <ContainerOutlined />
             <span>合同管理</span>
@@ -91,94 +67,141 @@
           <span>项目验收</span>
         </a-menu-item>
         
-        <!-- 历史档案 (与项目调研、立项、实施、验收同级) -->
-        <a-sub-menu key="project-archive" data-menu-id="project-archive">
-          <template #title>
-            <DatabaseOutlined />
-            <span>历史档案</span>
-          </template>
-          <a-menu-item key="project-archive-list">
-            <FileTextOutlined />
-            <span>档案查看</span>
-          </a-menu-item>
-        </a-sub-menu>
+
       </a-sub-menu>
       
-      <!-- 成果管理 -->
+      <!-- 暂时隐藏的其他功能菜单 -->
+      <!-- 
+      <a-menu-item key="dashboard">
+        <DashboardOutlined />
+        <span>工作台</span>
+      </a-menu-item>
+      
       <a-menu-item key="achievements">
         <TrophyOutlined />
         <span>成果管理</span>
       </a-menu-item>
       
-      <a-menu-item key="analysis">
+      <!-- 统计分析功能暂时隐藏 -->
+      <!-- <a-menu-item key="analysis">
         <BarChartOutlined />
         <span>统计分析</span>
-      </a-menu-item>
-      <a-menu-item key="knowledge-base">
-        <FileTextOutlined />
-        <span>知识库管理</span>
-      </a-menu-item>
-      <a-sub-menu key="maintenance">
+      </a-menu-item> -->
+      
+      
+      
+      <!-- 项目经理后台管理 -->
+      <a-sub-menu key="project-manager" data-menu-id="project-manager" v-if="hasPermi(['project-manager:view'])">
+        <template #title>
+          <UserOutlined />
+          <span>项目经理后台</span>
+          <a-badge :count="pmUnreadCount" :offset="[8, -2]" :overflowCount="99" />
+        </template>
+        <a-menu-item key="project-manager-dashboard" v-if="hasPermi(['project-manager:dashboard'])">
+          <DashboardOutlined />
+          <span>仪表板</span>
+        </a-menu-item>
+        <a-menu-item key="project-manager-projects" v-if="hasPermi(['project-manager:projects'])">
+          <ProjectOutlined />
+          <span>项目详情管理</span>
+          <a-badge :count="pmUnreadCount" :overflowCount="99" class="menu-item-badge" />
+        </a-menu-item>
+        <a-menu-item key="project-manager-tasks" v-if="hasPermi(['project-manager:tasks'])">
+          <CheckSquareOutlined />
+          <span>任务管理</span>
+        </a-menu-item>
+        <a-menu-item key="project-manager-team" v-if="hasPermi(['project-manager:team'])">
+          <TeamOutlined />
+          <span>团队管理</span>
+        </a-menu-item>
+        <!-- 资源管理功能暂时隐藏 -->
+        <!-- <a-menu-item key="project-manager-resources" v-if="hasPermi(['project-manager:resources'])">
+          <DatabaseOutlined />
+          <span>资源管理</span>
+        </a-menu-item> -->
+        <!-- 数据分析功能暂时隐藏 -->
+        <!-- <a-menu-item key="project-manager-analytics" v-if="hasPermi(['project-manager:analytics'])">
+          <BarChartOutlined />
+          <span>数据分析</span>
+        </a-menu-item> -->
+        <a-menu-item key="project-archive-completed" v-if="hasPermi(['project-manager:archive:completed'])">
+          <DatabaseOutlined />
+          <span>项目归档</span>
+        </a-menu-item>
+        <a-menu-item key="project-manager-help" v-if="hasPermi(['project-manager:help'])">
+          <QuestionCircleOutlined />
+          <span>使用指南</span>
+        </a-menu-item>
+      </a-sub-menu>
+      
+      <!-- AI助手（隐藏） -->
+      <a-sub-menu key="ai-assistant" data-menu-id="ai-assistant" v-if="false">
+        <template #title>
+          <RobotOutlined />
+          <span>AI助手</span>
+        </template>
+        <a-menu-item key="ai-assistant-project-manager" v-if="hasPermi(['ai-assistant:project-manager'])">
+          <UserOutlined />
+          <span>项目经理助手</span>
+        </a-menu-item>
+        <a-menu-item key="ai-assistant-team-member" v-if="hasPermi(['ai-assistant:team-member'])">
+          <TeamOutlined />
+          <span>团队成员助手</span>
+        </a-menu-item>
+        <a-menu-item key="ai-assistant-management" v-if="hasPermi(['ai-assistant:management'])">
+          <BankOutlined />
+          <span>管理层助手</span>
+        </a-menu-item>
+        <a-menu-item key="ai-assistant-help" v-if="hasPermi(['ai-assistant:help'])">
+          <QuestionCircleOutlined />
+          <span>使用指南</span>
+        </a-menu-item>
+      </a-sub-menu>
+      
+      <!-- 团队成员工作台 -->
+      <a-sub-menu key="team-member" data-menu-id="team-member" v-if="hasPermi(['team-member:view'])">
+        <template #title>
+          <UserOutlined />
+          <span>团队成员工作台</span>
+          <a-badge :count="tmUnreadCount" :offset="[8, -2]" :overflowCount="99" />
+        </template>
+
+        <a-menu-item key="team-member-tasks-board" v-if="hasPermi(['team-member:tasks'])">
+          <AppstoreOutlined />
+          <span>我的任务看板</span>
+        </a-menu-item>
+        
+        <a-menu-item key="team-member-help" v-if="hasPermi(['team-member:help'])">
+          <QuestionCircleOutlined />
+          <span>使用指南</span>
+        </a-menu-item>
+      </a-sub-menu>
+
+      <!-- 日常维护菜单（移动到此处） -->
+      <a-sub-menu key="maintenance" v-if="hasPermi(['maintenance:view'])">
         <template #title>
           <ToolOutlined />
           <span>日常维护</span>
         </template>
-
-        <a-menu-item key="material-template-maintenance">
+        <!-- 模板维护 -->
+        <a-menu-item key="project-template-maintenance" v-if="hasPermi(['maintenance:project-template'])">
+          <FileTextOutlined />
+          <span>项目模板管理</span>
+        </a-menu-item>
+        <a-menu-item key="material-template-maintenance" v-if="hasPermi(['maintenance:material-template'])">
           <FileTextOutlined />
           <span>材料提交模板维护</span>
         </a-menu-item>
-        <a-menu-item key="node-data-maintenance">
-          <ClusterOutlined />
-          <span>节点数据类型维护</span>
-        </a-menu-item>
-        <a-menu-item key="node-template-maintenance">
-          <FileTextOutlined />
-          <span>节点模板库维护</span>
-        </a-menu-item>
-        <a-menu-item key="implementation-nodes">
-          <ClusterOutlined />
-          <span>节点管理计划</span>
-            <div class="urgent-tag" v-if="hasUrgentNodes">🔴</div>
-        </a-menu-item>
-        <a-menu-item key="knowledge-maintenance">
-          <FileTextOutlined />
-          <span>知识库维护</span>
-        </a-menu-item>
-        <a-menu-item key="approval-doc-maintenance">
-          <FileTextOutlined />
-          <span>立项申报书维护</span>
-        </a-menu-item>
-        <a-menu-item key="budget-template-maintenance">
-          <FileTextOutlined />
-          <span>预算模板维护</span>
-        </a-menu-item>
-        <a-menu-item key="ppt-template-maintenance">
-          <FileTextOutlined />
-          <span>立项ppt模板维护</span>
-        </a-menu-item>
-        <a-menu-item key="inquiry-sms-template-maintenance">
-          <MailOutlined />
-          <span>询价短信模板维护</span>
-        </a-menu-item>
-        <a-menu-item key="role-permission-maintenance">
-          <SafetyOutlined />
-          <span>角色与权限维护</span>
-        </a-menu-item>
-
-        <a-menu-item key="staff-maintenance">
-          <UserOutlined />
-          <span>员工管理维护</span>
-        </a-menu-item>
       </a-sub-menu>
+      
+      <!-- 暂时隐藏系统设置 -->
+      <!-- 
       <a-menu-item key="settings">
         <SettingOutlined />
         <span>系统设置</span>
       </a-menu-item>
-      <a-menu-item key="preview">
-        <AppstoreOutlined />
-        <span>方案预览</span>
-      </a-menu-item>
+      -->
+
     </a-menu>
     
     <div class="main-content">
@@ -228,6 +251,8 @@
 <script setup>
 import { useRouter, useRoute } from 'vue-router'
 import { ref, computed, onMounted, watch } from 'vue'
+import { useTaskSyncStore } from '@/store/taskSync'
+import { hasPermi } from '@/utils/permission'
 import { 
   AppstoreOutlined, ProjectOutlined, FileTextOutlined, SettingOutlined,
   DashboardOutlined, SearchOutlined, AuditOutlined, DatabaseOutlined,
@@ -237,11 +262,14 @@ import {
   UnorderedListOutlined, BarChartOutlined, PieChartOutlined, FundOutlined,
   RocketOutlined, MailOutlined, ToolOutlined, UserOutlined,
   FileAddOutlined, ScheduleOutlined, RightOutlined, TrophyOutlined,
-  PlusOutlined, FileSearchOutlined, LineChartOutlined
+  PlusOutlined, FileSearchOutlined, LineChartOutlined, BookOutlined,
+  RobotOutlined, CheckSquareOutlined, BankOutlined, QuestionCircleOutlined,
+  FolderOpenOutlined, UploadOutlined
 } from '@ant-design/icons-vue'
 
 const router = useRouter()
 const route = useRoute()
+const taskSyncStore = useTaskSyncStore()
 
 // 手动管理的选中状态
 const manualSelectedKeys = ref([])
@@ -274,6 +302,7 @@ const selectedKey = computed(() => {
     '/approval/materials': 'approval-materials', 
     '/approval/review': 'approval-review',
     '/approval/decision': 'approval-decision',
+    '/implementation/approval': 'project-approval',
     
     // 项目实施
     '/implementation/center': 'implementation-center',
@@ -283,16 +312,41 @@ const selectedKey = computed(() => {
     '/implementation/progress': 'implementation-progress',
     '/implementation/opening': 'implementation-opening',
     '/implementation/midterm': 'implementation-midterm',
-    '/implementation/approval': 'project-approval',
     '/implementation/acceptance': 'project-acceptance',
     
+    // 项目经理后台管理页面
+    '/project-manager/dashboard': 'project-manager-dashboard',
+    '/project-manager/projects': 'project-manager-projects',
+    '/project-manager/projects/config-wizard': 'project-manager-projects',
+    '/project-manager/tasks': 'project-manager-tasks',
+    '/project-manager/team': 'project-manager-team',
+    '/project-manager/resources': 'project-manager-resources',
+    '/project-manager/analytics': 'project-manager-analytics',
+    '/project-manager/help': 'project-manager-help',
+    
+    // 项目归档（已移至项目经理后台）
+    '/project/archive/completed': 'project-archive-completed',
+    
+    // 维护管理页面
+    '/project-manager/templates': 'project-template-maintenance',
+    
+    // AI助手页面
+    '/ai-assistant/project-manager': 'ai-assistant-project-manager',
+    '/ai-assistant/team-member': 'ai-assistant-team-member',
+    '/ai-assistant/management': 'ai-assistant-management',
+    '/ai-assistant/help': 'ai-assistant-help',
+    
+    // 团队成员工作台页面
+    '/team-member/tasks': 'team-member-tasks-board',
+    
+    '/team-member/help': 'team-member-help',
+    
     // 其他页面
-    '/project/archive': 'project-archive-list',
     '/analytics': 'analysis',
     '/achievements': 'achievements',
     '/literature': 'knowledge-base',
     '/settings': 'settings',
-    '/preview': 'preview'
+    
   }
   
   // 直接匹配路径
@@ -300,24 +354,40 @@ const selectedKey = computed(() => {
     return [routeToKeyMap[path]]
   }
   
-  // 处理动态路由和子路径
-  if (path.startsWith('/project/') && path !== '/project/archive') {
-    return ['project']
+  // 处理项目归档路径
+  if (path === '/project/archive/completed') {
+    return ['project-archive-completed']
   }
   
-  // 默认选中工作台
-  return ['dashboard']
+  // 处理其他项目相关动态路由和子路径（项目管理菜单隐藏时，映射到项目经理-项目详情管理）
+  if (path.startsWith('/project/') && !path.startsWith('/project/archive')) {
+    return ['project-manager-projects']
+  }
+  
+  // 默认选中项目经理后台
+  return ['project-manager-dashboard']
 })
 
-// 默认展开的菜单
+// 默认展开的菜单（仅包含当前可见的子菜单）
 const openKeys = ref([
-  'project',
-  'project-research',
-  'project-approval',
-  'project-implementation',
-  'project-archive',
+  'project-manager',
+  'team-member',
   'maintenance'
 ])
+
+// 可见子菜单 keys（受权限与显隐控制）
+const visibleSubmenuKeys = computed(() => {
+  const keys = []
+  if (hasPermi(['project-manager:view'])) keys.push('project-manager')
+  if (hasPermi(['team-member:view'])) keys.push('team-member')
+  if (hasPermi(['maintenance:view'])) keys.push('maintenance')
+  return keys
+})
+
+// 过滤后的 openKeys，避免包含被隐藏或不存在的子菜单，防止 useInjectMenu 上下文缺失
+const filteredOpenKeys = computed(() => {
+  return openKeys.value.filter(key => visibleSubmenuKeys.value.includes(key))
+})
 
 // 数据统计 (实际项目中从API获取) - v3.0版本
 const counts = ref({
@@ -339,10 +409,8 @@ const counts = ref({
 })
 
 // 未读数量统计
-const unreadCount = ref({
-  dashboard: 3,
-  project: 15
-})
+const pmUnreadCount = computed(() => taskSyncStore.getTotalUnreadCount())
+const tmUnreadCount = computed(() => taskSyncStore.getTotalUnreadCount())
 
 // 紧急事项标识
 const hasUrgentResearch = computed(() => true) // 有紧急调研任务
@@ -375,7 +443,7 @@ const drawerSubtitle = computed(() => {
 })
 
 function onOpenChange(keys) {
-  openKeys.value = keys
+  openKeys.value = keys.filter(key => visibleSubmenuKeys.value.includes(key))
 }
 
 function onMenuClick({ key, keyPath }) {
@@ -398,6 +466,9 @@ function onMenuClick({ key, keyPath }) {
     'approval-review': '/approval/review',
     'approval-decision': '/approval/decision',
     
+    // 项目立项路由 - 直接使用整合页面
+    'project-approval': '/implementation/approval',
+    
     // 项目实施路由
     'implementation-center': '/implementation/center',
     'implementation-contract': '/implementation/contract',
@@ -411,14 +482,11 @@ function onMenuClick({ key, keyPath }) {
     // 项目中期路由 - 使用新的路由
     'implementation-midterm': '/implementation/midterm',
     
-    // 项目立项路由 - 直接使用整合页面
-    'project-approval': '/implementation/approval',
-    
     // 项目验收路由 - 直接使用整合页面
     'project-acceptance': '/implementation/acceptance',
     
-    // 项目管理路由
-    'project-archive-list': '/project/archive',
+    // 项目归档路由
+    'project-archive-completed': '/project/archive/completed',
     
     // 统计分析路由
     'analysis': '/analytics',
@@ -428,22 +496,42 @@ function onMenuClick({ key, keyPath }) {
     
     // 维护相关菜单
     'maintenance': '/settings', // 日常维护暂时跳转到设置页面
-    'node-data-maintenance': '/settings',
-    'node-template-maintenance': '/settings',
-    'implementation-nodes': '/settings',
-    'knowledge-maintenance': '/settings',
-    'approval-doc-maintenance': '/settings',
+    'project-template-maintenance': '/project-manager/templates',
+    'material-template-maintenance': '/settings/material-template',
     'budget-template-maintenance': '/settings',
     'ppt-template-maintenance': '/settings',
+    'node-data-maintenance': '/settings',
+    'node-template-maintenance': '/settings',
+    'knowledge-maintenance': '/settings',
+    'approval-doc-maintenance': '/settings',
     'inquiry-sms-template-maintenance': '/settings',
     'role-permission-maintenance': '/settings',
     'staff-maintenance': '/settings',
-    'material-template-maintenance': '/settings/material-template',
+    
+    // 项目经理后台管理路由
+    'project-manager-dashboard': '/project-manager/dashboard',
+    'project-manager-projects': '/project-manager/projects',
+    'project-manager-tasks': '/project-manager/tasks',
+    'project-manager-team': '/project-manager/team',
+    'project-manager-resources': '/project-manager/resources',
+    'project-manager-analytics': '/project-manager/analytics',
+    'project-manager-help': '/project-manager/help',
+    
+    // AI助手路由
+    'ai-assistant-project-manager': '/ai-assistant/project-manager',
+    'ai-assistant-team-member': '/ai-assistant/team-member',
+    'ai-assistant-management': '/ai-assistant/management',
+    'ai-assistant-help': '/ai-assistant/help',
+    
+    // 团队成员工作台路由
+    'team-member-tasks-board': '/team-member/tasks',
+    
+    'team-member-help': '/team-member/help',
     
     // 其他路由
     'knowledge-base': '/literature',
     'settings': '/settings',
-    'preview': '/preview'
+    
   }
   
   const path = routeMap[key]
@@ -493,6 +581,8 @@ onMounted(() => {
   // 确保初始状态正确
   manualSelectedKeys.value = []
   customSelectedKeys.value = []
+  // 过滤一次展开项，移除任何已隐藏的子菜单 key
+  openKeys.value = openKeys.value.filter(key => visibleSubmenuKeys.value.includes(key))
   
   // 移除内联样式
   setTimeout(() => {
