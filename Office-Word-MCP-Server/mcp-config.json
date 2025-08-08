@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "word-document-server": {
+      "command": "C:\\Users\\38344\\anaconda3\\python.exe",
+      "args": [
+        "-m",
+        "word_document_server"
+      ],
+      "env": {
+        "MCP_TRANSPORT": "stdio"
+      }
+    }
+  }
+}
